@@ -1,0 +1,38 @@
+[package]
+name = "app-uninstaller"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.92"
+license = "MIT"
+description = "Windows application removal with explainable, reversible leftover review"
+repository = "https://github.com/siarheisinelnikau/app-uninstaller"
+
+[dependencies]
+anyhow = "1.0.104"
+eframe = { version = "=0.33.3", default-features = false, features = ["default_fonts", "glow", "accesskit", "x11", "wayland"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sha2 = "0.10.9"
+semver = "1.0.28"
+ureq = { version = "3.5.0", features = ["json"] }
+uuid = { version = "1.29.0", features = ["v4"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_Registry", "Win32_System_Threading", "Win32_System_Environment", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_System_Com"] }
+
+[dev-dependencies]
+tempfile = "3.27.0"
+
+[[bin]]
+name = "AppUninstaller"
+path = "src/main.rs"
+
+[profile.release]
+strip = "debuginfo"
+
+[profile.dev]
+incremental = false
+
+[profile.test]
+incremental = false
+

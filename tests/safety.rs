@@ -7,7 +7,9 @@ use app_uninstaller::{
 use std::{fs, path::PathBuf};
 
 fn fixture_dir() -> tempfile::TempDir {
-    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target/test-fixtures");
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("target")
+        .join("test-fixtures");
     fs::create_dir_all(&root).unwrap();
     tempfile::Builder::new()
         .prefix("safety-")
@@ -102,6 +104,8 @@ fn setup() -> (tempfile::TempDir, InstalledApp, SafetyPolicy) {
             root.join("uninstall.exe").display()
         ))
     };
+    command::parse_registered(&fixture.uninstall_string)
+        .expect("Fixture command must be a safe absolute executable");
     let policy = SafetyPolicy {
         allowed_parents: vec![temp.path().into()],
         excluded_roots: vec![],
@@ -113,8 +117,8 @@ fn setup() -> (tempfile::TempDir, InstalledApp, SafetyPolicy) {
 #[test]
 fn quarantine_and_restore_preserve_fixture_bytes_and_refuse_overwrite() {
     let (temp, fixture, policy) = setup();
-    let snapshot = leftovers::capture(&fixture, &[fixture.clone()], &policy).unwrap();
-    assert!(leftovers::review(&snapshot, &[fixture.clone()], &policy).is_err());
+    let snapshot = leftovers::capture(&fixture, std::slice::from_ref(&fixture), &policy).unwrap();
+    assert!(leftovers::review(&snapshot, std::slice::from_ref(&fixture), &policy).is_err());
     fs::remove_file(snapshot.root.join("uninstall.exe")).unwrap();
     let candidate = leftovers::review(&snapshot, &[], &policy).unwrap().unwrap();
     assert_eq!(candidate.files.len(), 1);
@@ -178,9 +182,59 @@ fn changed_or_new_files_and_stale_previews_block_quarantine() {
     assert!(leftovers::review(&snapshot, &[], &policy).is_err());
     assert!(leftovers::quarantine(&candidate, &temp.path().join("journal")).is_err());
     fs::write(snapshot.root.join("settings.dat"), b"fixture settings").unwrap();
+    fs::create_dir(snapshot.root.join("new-empty-folder")).unwrap();
+    assert!(leftovers::review(&snapshot, &[], &policy).is_err());
+    fs::remove_dir(snapshot.root.join("new-empty-folder")).unwrap();
     fs::write(snapshot.root.join("new-user-file.txt"), b"new").unwrap();
     assert!(leftovers::review(&snapshot, &[], &policy).is_err());
     assert!(snapshot.root.exists());
+}
+
+#[cfg(windows)]
+#[test]
+fn quarantine_refuses_modified_backups_and_forged_journal_paths() {
+    let (temp, fixture, policy) = setup();
+    let snapshot = leftovers::capture(&fixture, &[], &policy).unwrap();
+    let candidate = leftovers::review(&snapshot, &[], &policy).unwrap().unwrap();
+    let record = leftovers::quarantine(&candidate, &temp.path().join("journal")).unwrap();
+    let mut forged = record.clone();
+    forged.backup = temp.path().join("unrelated-folder");
+    assert!(leftovers::restore(&forged).is_err());
+    fs::write(
+        record.backup.join("settings.dat"),
+        b"changed after quarantine",
+    )
+    .unwrap();
+    assert!(leftovers::restore(&record).is_err());
+    assert!(record.backup.is_dir());
+    assert!(!record.original.exists());
+}
+
+#[cfg(windows)]
+#[test]
+fn absent_directory_is_not_a_leftover_and_custom_locations_are_excluded() {
+    let (_temp, fixture, policy) = setup();
+    let snapshot = leftovers::capture(&fixture, &[], &policy).unwrap();
+    assert!(
+        leftovers::capture(
+            &fixture,
+            &[],
+            &SafetyPolicy {
+                allowed_parents: vec![],
+                excluded_roots: vec![]
+            }
+        )
+        .is_err()
+    );
+    for path in ["uninstall.exe", "settings.dat"] {
+        fs::remove_file(snapshot.root.join(path)).unwrap();
+    }
+    fs::remove_dir(&snapshot.root).unwrap();
+    assert!(
+        leftovers::review(&snapshot, &[], &policy)
+            .unwrap()
+            .is_none()
+    );
 }
 
 #[test]

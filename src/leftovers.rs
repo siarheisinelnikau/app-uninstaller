@@ -49,6 +49,7 @@ impl SafetyPolicy {
 pub struct Fingerprint {
     pub bytes: u64,
     pub sha256: String,
+    pub directory: bool,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Snapshot {
@@ -228,6 +229,7 @@ pub fn hash_file(path: &Path, max: u64) -> Result<Fingerprint> {
     Ok(Fingerprint {
         bytes,
         sha256: format!("{:x}", hash.finalize()),
+        directory: false,
     })
 }
 pub fn manifest(root: &Path) -> Result<BTreeMap<PathBuf, Fingerprint>> {
@@ -245,6 +247,14 @@ pub fn manifest(root: &Path) -> Result<BTreeMap<PathBuf, Fingerprint>> {
             reject_links(&path)?;
             let meta = fs::symlink_metadata(&path)?;
             if meta.is_dir() {
+                files.insert(
+                    path.strip_prefix(root)?.to_path_buf(),
+                    Fingerprint {
+                        bytes: 0,
+                        sha256: String::new(),
+                        directory: true,
+                    },
+                );
                 stack.push((path, depth + 1));
             } else if meta.is_file() {
                 #[cfg(windows)]
@@ -309,7 +319,7 @@ pub fn review(
     let files = manifest(&root)?;
     ensure!(
         files.iter().all(|(p, f)| snapshot.files.get(p) == Some(f)),
-        "New or changed files were found after uninstall; this folder cannot be quarantined"
+        "New or changed files/folders were found after uninstall; this folder cannot be quarantined"
     );
     Ok(Some(Candidate {
         snapshot: snapshot.clone(),

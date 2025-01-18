@@ -173,7 +173,7 @@ impl Desktop {
                     limitation,
                 } => {
                     self.confirmation = Some(Confirmation {
-                        app,
+                        app: *app,
                         plan,
                         snapshot,
                         limitation,
@@ -192,11 +192,15 @@ impl Desktop {
                     self.set_inventory(inventory, ctx);
                     self.busy = false;
                     self.candidate = None;
-                    self.snapshot = snapshot;
+                    self.snapshot = if [3010, 1641].contains(&code) {
+                        None
+                    } else {
+                        snapshot
+                    };
                     self.page = Page::Leftovers;
-                    self.message = if code == 3010 {
+                    self.message = if [3010, 1641].contains(&code) {
                         format!(
-                            "{app_name}: uninstaller reports that a Windows restart is required. Restart before reviewing leftovers."
+                            "{app_name}: uninstaller reports a Windows restart. Leftover quarantine is disabled for this session; finish the restart first."
                         )
                     } else {
                         format!(
@@ -384,8 +388,8 @@ impl Desktop {
                         ui.horizontal(|ui| {
                             if let Some(icon)=self.icons.get(&app.id){ui.image((icon.id(),egui::vec2(28.,28.)));}
                             ui.vertical(|ui| {
-                                if ui.selectable_label(selected,RichText::new(&app.name).strong()).clicked(){self.selected=Some(app.id.clone());}
-                                ui.label(RichText::new(format!("{} · {}",if app.publisher.is_empty(){"Unknown publisher"}else{&app.publisher},size(app.estimated_kib.map(|n|n*1024)))).small());
+                                if ui.add(egui::Button::new(RichText::new(&app.name).strong()).selected(selected).frame(false).truncate()).clicked(){self.selected=Some(app.id.clone());}
+                                ui.add(egui::Label::new(RichText::new(format!("{} · {}",if app.publisher.is_empty(){"Unknown publisher"}else{&app.publisher},size(app.estimated_kib.map(|n|n*1024)))).small()).truncate());
                             });
                         });
                     });
@@ -414,9 +418,10 @@ impl Desktop {
         let _ = ctx;
     }
     fn leftovers(&mut self, ui: &mut egui::Ui) {
+        let mut action = None;
         ui.heading("Explainable leftover review");
         ui.label("Only a proven installation folder can be suggested. Documents, shared locations, custom paths and registry values are excluded. Missing ownership evidence means no cleanup suggestion.");
-        if let Some(snapshot) = self.snapshot.clone() {
+        if let Some(snapshot) = &self.snapshot {
             ui.add_space(10.);
             ui.strong(&snapshot.app_name);
             ui.monospace(snapshot.root.display().to_string());
@@ -427,39 +432,43 @@ impl Desktop {
                 )
                 .clicked()
             {
-                self.send(
-                    Work::Review(snapshot),
+                action = Some((
+                    Work::Review(snapshot.clone()),
                     "Checking registration removal and unchanged ownership evidence…",
-                );
+                ));
             }
         } else if self.candidate.is_none() {
             ui.add_space(15.);
             ui.label("No removal session has evidence to review. Start with Review uninstall in Applications. Evidence is kept in memory for this session only.");
         }
-        if let Some(candidate) = self.candidate.clone() {
+        if let Some(candidate) = &self.candidate {
             ui.separator();
             ui.heading("Folder preview");
             ui.monospace(candidate.snapshot.root.display().to_string());
             let bytes = candidate.files.values().map(|f| f.bytes).sum();
             ui.label(format!(
-                "{} unchanged files · {}",
+                "{} unchanged files and folders · {}",
                 candidate.files.len(),
                 size(Some(bytes))
             ));
             for evidence in &candidate.snapshot.evidence {
                 ui.label(format!("• {evidence}"));
             }
-            ui.collapsing("Every proposed file and its SHA-256", |ui| {
+            ui.collapsing("Every proposed file/folder and file SHA-256", |ui| {
                 egui::ScrollArea::vertical()
                     .max_height(200.)
                     .show(ui, |ui| {
                         for (path, fingerprint) in &candidate.files {
                             ui.monospace(path.display().to_string());
-                            ui.small(format!(
-                                "{} · {}",
-                                size(Some(fingerprint.bytes)),
-                                fingerprint.sha256
-                            ));
+                            if fingerprint.directory {
+                                ui.small("Folder");
+                            } else {
+                                ui.small(format!(
+                                    "{} · {}",
+                                    size(Some(fingerprint.bytes)),
+                                    fingerprint.sha256
+                                ));
+                            }
                         }
                         if candidate.files.is_empty() {
                             ui.label("Only the empty folder remains.");
@@ -479,11 +488,14 @@ impl Desktop {
                 )
                 .clicked()
             {
-                self.send(
-                    Work::Quarantine(candidate),
+                action = Some((
+                    Work::Quarantine(candidate.clone()),
                     "Revalidating the preview and moving the selected folder to quarantine…",
-                );
+                ));
             }
+        }
+        if let Some((work, message)) = action {
+            self.send(work, message);
         }
     }
     fn quarantine(&mut self, ui: &mut egui::Ui) {
@@ -499,7 +511,7 @@ impl Desktop {
                 ui.label(format!("Original: {}", record.original.display()));
                 ui.label(format!("Quarantine: {}", record.backup.display()));
                 ui.small(format!(
-                    "{} files · journal {}",
+                    "{} files and folders · journal {}",
                     record.files.len(),
                     record.id
                 ));
@@ -591,6 +603,21 @@ impl Desktop {
             ui.label("User data storage unavailable. Settings and quarantine are disabled.");
         }
         ui.small("No telemetry. No registry cleaning. Inventory stays local. Network access is used only for updates.");
+        ui.collapsing("Open-source licenses and bundled font notices", |ui| {
+            static LINES: std::sync::LazyLock<Vec<&'static str>> = std::sync::LazyLock::new(|| {
+                include_str!("../THIRD_PARTY_NOTICES.txt").lines().collect()
+            });
+            egui::ScrollArea::both().max_height(260.).show_rows(
+                ui,
+                16.,
+                LINES.len(),
+                |ui, range| {
+                    for row in range {
+                        ui.monospace(LINES[row]);
+                    }
+                },
+            );
+        });
         for warning in self.warnings.iter().chain(self.inventory_warnings.iter()) {
             ui.colored_label(Color32::from_rgb(150, 70, 0), warning);
         }
@@ -613,15 +640,13 @@ impl Desktop {
         if cancel {
             self.confirmation = None;
         }
-        if launch {
-            if let Some(confirm) = self.confirmation.take() {
-                self.snapshot = None;
-                self.candidate = None;
-                self.send(
-                    Work::Uninstall(confirm.app, confirm.plan, confirm.snapshot),
-                    "Waiting for the publisher's uninstaller. Complete its windows to continue…",
-                );
-            }
+        if launch && let Some(confirm) = self.confirmation.take() {
+            self.snapshot = confirm.snapshot.clone();
+            self.candidate = None;
+            self.send(
+                Work::Uninstall(Box::new(confirm.app), confirm.plan, confirm.snapshot),
+                "Waiting for the publisher's uninstaller. Complete its windows to continue…",
+            );
         }
         let mut restore = false;
         let mut dismiss = false;
@@ -635,13 +660,11 @@ impl Desktop {
         if dismiss {
             self.restore_confirm = None;
         }
-        if restore {
-            if let Some(record) = self.restore_confirm.take() {
-                self.send(
-                    Work::Restore(record),
-                    "Validating quarantine and restoring its original folder…",
-                );
-            }
+        if restore && let Some(record) = self.restore_confirm.take() {
+            self.send(
+                Work::Restore(record),
+                "Validating quarantine and restoring its original folder…",
+            );
         }
     }
 }

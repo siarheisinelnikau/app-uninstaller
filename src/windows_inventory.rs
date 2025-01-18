@@ -129,6 +129,7 @@ pub fn enumerate() -> Result<Inventory> {
                     continue;
                 }
             };
+            let mut exhausted = false;
             for index in 0..20000 {
                 let mut name = [0u16; 256];
                 let mut len = name.len() as u32;
@@ -145,6 +146,7 @@ pub fn enumerate() -> Result<Inventory> {
                     )
                 };
                 if code == ERROR_NO_MORE_ITEMS {
+                    exhausted = true;
                     break;
                 }
                 if code != ERROR_SUCCESS {
@@ -162,17 +164,22 @@ pub fn enumerate() -> Result<Inventory> {
                     }
                 };
                 let display_name = string(&key, "DisplayName");
-                if display_name.trim().is_empty() {
+                let location = string(&key, "InstallLocation");
+                let nameless = display_name.trim().is_empty();
+                if nameless && location.trim().is_empty() {
                     continue;
                 }
                 let icon = string(&key, "DisplayIcon");
-                let location = string(&key, "InstallLocation");
                 let app = InstalledApp {
                     id: format!("{scope}/{view}/{name}"),
-                    key_name: name,
+                    key_name: name.clone(),
                     scope: scope.into(),
                     view: view.into(),
-                    name: display_name,
+                    name: if nameless {
+                        format!("Unnamed registration: {name}")
+                    } else {
+                        display_name
+                    },
                     publisher: string(&key, "Publisher"),
                     version: string(&key, "DisplayVersion"),
                     estimated_kib: dword(&key, "EstimatedSize").map(u64::from),
@@ -180,7 +187,7 @@ pub fn enumerate() -> Result<Inventory> {
                         .then(|| PathBuf::from(location.trim_matches('"'))),
                     uninstall_string: string(&key, "UninstallString"),
                     windows_installer: dword(&key, "WindowsInstaller") == Some(1),
-                    system_component: dword(&key, "SystemComponent") == Some(1),
+                    system_component: nameless || dword(&key, "SystemComponent") == Some(1),
                     icon: extract_icon(&icon),
                     display_icon: icon,
                 };
@@ -196,6 +203,11 @@ pub fn enumerate() -> Result<Inventory> {
                 } else {
                     inventory.apps.push(app);
                 }
+            }
+            if !exhausted {
+                inventory.warnings.push(format!(
+                    "{scope}/{view}: inventory exceeded the 20,000 registration limit"
+                ));
             }
         }
     }

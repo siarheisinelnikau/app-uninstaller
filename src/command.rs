@@ -11,6 +11,26 @@ pub struct UninstallPlan {
     pub explanation: String,
 }
 
+pub fn windows_directory() -> Result<String> {
+    #[cfg(windows)]
+    {
+        let mut buffer = [0u16; 32768];
+        let length = unsafe {
+            windows_sys::Win32::System::SystemInformation::GetWindowsDirectoryW(
+                buffer.as_mut_ptr(),
+                buffer.len() as u32,
+            )
+        };
+        ensure!(
+            length > 0 && (length as usize) < buffer.len(),
+            "Cannot determine the trusted Windows directory"
+        );
+        Ok(String::from_utf16_lossy(&buffer[..length as usize]))
+    }
+    #[cfg(not(windows))]
+    bail!("Windows directory is unavailable on this platform")
+}
+
 pub fn valid_product_code(s: &str) -> bool {
     s.len() == 38
         && s.starts_with('{')
@@ -116,7 +136,7 @@ pub fn execute(plan: &UninstallPlan) -> Result<u32> {
         );
         let status = std::process::Command::new(&plan.executable)
             .raw_arg(&plan.arguments)
-            .status()?;
+            .status().map_err(|e| anyhow::anyhow!("Could not run registered uninstaller: {e}. If it requires administrator permission, use Windows Installed apps; AppUninstaller does not request elevation"))?;
         Ok(status.code().unwrap_or(-1) as u32)
     }
     #[cfg(not(windows))]

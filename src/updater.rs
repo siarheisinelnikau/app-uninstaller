@@ -209,6 +209,7 @@ fn prepare_download(
             .call()?;
         let mut input = response.body_mut().as_reader().take(update.asset.size + 1);
         let mut bytes = 0;
+        let mut last_progress = 0;
         let mut buffer = [0u8; 64 * 1024];
         loop {
             let n = input.read(&mut buffer)?;
@@ -221,7 +222,10 @@ fn prepare_download(
                 "Download exceeds the advertised size"
             );
             output.write_all(&buffer[..n])?;
-            progress(bytes, update.asset.size);
+            if bytes - last_progress >= 1024 * 1024 || bytes == update.asset.size {
+                progress(bytes, update.asset.size);
+                last_progress = bytes;
+            }
         }
         output.sync_all()?;
         drop(output);
@@ -251,6 +255,14 @@ fn prepare_download(
 pub fn launch_helper(path: &Path) -> Result<()> {
     let plan = read_plan(path)?;
     validate_plan(path, &plan)?;
+    ensure!(
+        hash_file(&plan.helper, MAX_DOWNLOAD)?.sha256 == plan.original_hash,
+        "Update helper changed; installation cancelled"
+    );
+    ensure!(
+        hash_file(&plan.payload, MAX_DOWNLOAD)?.sha256 == plan.expected_hash,
+        "Verified download changed; installation cancelled"
+    );
     std::process::Command::new(&plan.helper)
         .arg("--apply-update")
         .arg(path)
@@ -343,33 +355,169 @@ pub fn apply_helper(path: &Path) -> Result<()> {
             hash_file(&plan.target, MAX_DOWNLOAD)?.sha256 == plan.original_hash,
             "Installed executable changed; replacement cancelled"
         );
-        let backup = path.parent().unwrap().join("previous.exe");
-        ensure!(!backup.exists(), "An update backup already exists");
-        fs::rename(&plan.target, &backup)?;
-        if let Err(error) = fs::rename(&plan.payload, &plan.target) {
-            let rollback = fs::rename(&backup, &plan.target);
-            bail!("Replacement failed: {error}; rollback: {rollback:?}");
-        }
-        if let Err(error) = std::process::Command::new(&plan.target).spawn() {
-            let move_new = fs::rename(&plan.target, &plan.payload);
-            let rollback = if move_new.is_ok() {
-                fs::rename(&backup, &plan.target)
-            } else {
-                move_new
-            };
-            bail!("Restart failed: {error}; rollback: {rollback:?}");
-        }
-        fs::write(
+        replace_and_restart(&plan, path.parent().unwrap(), |target| {
+            std::process::Command::new(target).spawn().map(|_| ())
+        })?;
+        let _ = fs::write(
             path.parent().unwrap().join("result.txt"),
             "Update installed and restart requested. Previous executable retained as previous.exe. Settings and quarantine journals were preserved.",
-        )?;
+        );
         Ok(())
     }
+}
+
+fn replace_and_restart(
+    plan: &InstallPlan,
+    stage: &Path,
+    restart: impl FnOnce(&Path) -> std::io::Result<()>,
+) -> Result<()> {
+    let backup = stage.join("previous.exe");
+    ensure!(!backup.exists(), "An update backup already exists");
+    fs::rename(&plan.target, &backup)?;
+    if let Err(error) = fs::rename(&plan.payload, &plan.target) {
+        let rollback = fs::rename(&backup, &plan.target);
+        bail!("Replacement failed: {error}; rollback: {rollback:?}");
+    }
+    if let Err(error) = restart(&plan.target) {
+        let move_new = fs::rename(&plan.target, &plan.payload);
+        let rollback = if move_new.is_ok() {
+            fs::rename(&backup, &plan.target)
+        } else {
+            move_new
+        };
+        bail!("Restart failed: {error}; rollback: {rollback:?}");
+    }
+    Ok(())
+}
+
+/// Diagnostic only; never writes to a caller-selected directory on malformed input.
+pub fn report_helper_failure(error: &anyhow::Error) {
+    if let Ok(exe) = std::env::current_exe()
+        && exe.file_name().is_some_and(|name| name == "helper.exe")
+        && let Some(stage) = exe.parent().filter(|parent| {
+            parent.file_name().is_some_and(|name| {
+                name.to_string_lossy()
+                    .starts_with(".AppUninstaller-update-")
+            })
+        })
+    {
+        let _ = fs::write(
+            stage.join("result.txt"),
+            format!(
+                "Update failed: {error:#}. Inspect this staging folder; previous.exe is the recovery backup when present. No user data was removed."
+            ),
+        );
+    }
+}
+
+pub fn previous_result() -> Result<Option<String>> {
+    let exe = std::env::current_exe()?;
+    let parent = exe.parent().context("Missing executable parent")?;
+    let mut results = Vec::new();
+    for entry in fs::read_dir(parent)?.take(1000) {
+        let entry = entry?;
+        if !entry
+            .file_name()
+            .to_string_lossy()
+            .starts_with(".AppUninstaller-update-")
+        {
+            continue;
+        }
+        let path = entry.path().join("result.txt");
+        if path.is_file() && reject_links(&path).is_ok() && fs::metadata(&path)?.len() <= 16384 {
+            results.push((fs::metadata(&path)?.modified()?, path));
+        }
+    }
+    results.sort_by_key(|(modified, _)| *modified);
+    results
+        .last()
+        .map(|(_, path)| {
+            Ok(format!(
+                "Previous update: {}\nReport: {}",
+                fs::read_to_string(path)?,
+                path.display()
+            ))
+        })
+        .transpose()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn replacement_fixture() -> (tempfile::TempDir, InstallPlan, PathBuf) {
+        let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join("test-fixtures");
+        fs::create_dir_all(&root).unwrap();
+        let temp = tempfile::Builder::new()
+            .prefix("updater-")
+            .tempdir_in(root)
+            .unwrap();
+        let target = temp.path().join("AppUninstaller.exe");
+        let stage = temp
+            .path()
+            .join(format!(".AppUninstaller-update-{}", uuid::Uuid::new_v4()));
+        fs::create_dir(&stage).unwrap();
+        let payload = stage.join("payload.exe");
+        let helper = stage.join("helper.exe");
+        fs::write(&target, b"inert original fixture").unwrap();
+        fs::write(&helper, b"inert original fixture").unwrap();
+        fs::write(&payload, b"inert replacement fixture").unwrap();
+        let plan = InstallPlan {
+            original_hash: hash_file(&target, 100).unwrap().sha256,
+            expected_hash: hash_file(&payload, 100).unwrap().sha256,
+            target,
+            payload,
+            helper,
+            parent_pid: 0,
+        };
+        (temp, plan, stage)
+    }
+    #[test]
+    fn replacement_keeps_a_backup_without_executing_anything() {
+        let (_temp, plan, stage) = replacement_fixture();
+        validate_plan(&stage.join("plan.json"), &plan).unwrap();
+        replace_and_restart(&plan, &stage, |path| {
+            assert_eq!(path, plan.target);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(
+            fs::read(&plan.target).unwrap(),
+            b"inert replacement fixture"
+        );
+        assert_eq!(
+            fs::read(stage.join("previous.exe")).unwrap(),
+            b"inert original fixture"
+        );
+    }
+    #[test]
+    fn replacement_and_restart_failures_restore_the_original() {
+        let (_temp, plan, stage) = replacement_fixture();
+        assert!(
+            replace_and_restart(&plan, &stage, |_| Err(std::io::Error::other(
+                "simulated restart failure"
+            )))
+            .is_err()
+        );
+        assert_eq!(fs::read(&plan.target).unwrap(), b"inert original fixture");
+        assert!(plan.payload.is_file());
+        fs::remove_file(&plan.payload).unwrap();
+        assert!(
+            replace_and_restart(&plan, &stage, |_| panic!(
+                "must not restart on failed replacement"
+            ))
+            .is_err()
+        );
+        assert_eq!(fs::read(&plan.target).unwrap(), b"inert original fixture");
+    }
+    #[test]
+    fn updater_rejects_targets_outside_staging_parent() {
+        let (_temp, mut plan, stage) = replacement_fixture();
+        plan.target = stage.join("other.exe");
+        assert!(validate_plan(&stage.join("plan.json"), &plan).is_err());
+    }
     fn release(version: &str) -> Release {
         Release {
             tag_name: format!("v{version}"),

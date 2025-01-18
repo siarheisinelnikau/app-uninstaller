@@ -7,15 +7,7 @@ fn main() -> eframe::Result {
         if args.len() == 2 {
             let path = std::path::Path::new(&args[1]);
             if let Err(error) = updater::apply_helper(path) {
-                // Do not display UI from the updater helper. Preserve diagnostics beside its plan.
-                if let Some(parent) = path.parent() {
-                    let _ = std::fs::write(
-                        parent.join("result.txt"),
-                        format!(
-                            "Update failed: {error:#}. Existing backup/payload files were preserved. Inspect this staging directory before retrying."
-                        ),
-                    );
-                }
+                updater::report_helper_failure(&error);
                 std::process::exit(1);
             }
         } else {

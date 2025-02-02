@@ -118,7 +118,7 @@ pub fn check() -> Result<Option<Update>> {
     let mut response = match response {
         Ok(response) => response,
         Err(ureq::Error::StatusCode(404)) => bail!(
-            "The repository or a published release is unavailable. This project has not been published yet"
+            "The repository or a published stable release is unavailable. No public stable release could be retrieved"
         ),
         Err(ureq::Error::StatusCode(403 | 429)) => bail!(
             "GitHub refused the request or the public API rate limit was reached. Try again later"

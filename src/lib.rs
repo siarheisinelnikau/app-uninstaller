@@ -1,3 +1,4 @@
+pub mod branding;
 pub mod command;
 pub mod inventory;
 pub mod leftovers;

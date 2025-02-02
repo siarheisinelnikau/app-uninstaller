@@ -529,7 +529,7 @@ impl Desktop {
         ui.label(format!(
             "AppUninstaller {VERSION} · Windows x64 portable · MIT license"
         ));
-        ui.hyperlink_to("Canonical repository (publication pending)", REPOSITORY);
+        ui.hyperlink_to("Canonical repository", REPOSITORY);
         ui.add_space(10.);
         let previous = self.settings.clone();
         if ui

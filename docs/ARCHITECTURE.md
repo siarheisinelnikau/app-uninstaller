@@ -33,3 +33,11 @@ Startup loads preferences before deciding whether to check. Corrupt/unavailable 
 Download is initiated by a button and runs with a size cap, timeouts and throttled progress. It stages beside the installed EXE, verifies size and SHA-256 from GitHub's release digest or `SHA256SUMS.txt`, copies the running EXE as a helper, and writes a constrained plan. The user then chooses restart/install. Before spawning the helper, hashes are checked again. The helper waits for the parent to exit, revalidates paths/hashes, renames the current file to `previous.exe`, installs the payload and requests a restart. Failed replacement or launch rolls back with errors preserved. Neither settings nor journals are replaced. No updater code is executed by the test suite; the replacement engine is tested with inert fixture bytes and an injected no-op/failing launch callback.
 
 Staged reports/backups are retained and surfaced on next launch. Signed binaries, automatic helper cleanup, multi-instance coordination and an end-to-end published-release update test remain future validation/work. The updater does not create scheduled tasks, services, registry entries or elevated processes.
+
+## Implementation references
+
+- [Microsoft uninstall registry properties](https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key)
+- [Rust Windows command argument handling](https://doc.rust-lang.org/std/os/windows/process/trait.CommandExt.html#tymethod.raw_arg)
+- [eframe 0.33.3 documentation](https://docs.rs/eframe/0.33.3/eframe/)
+
+The application title/window mark and UI arrangement are original code. Publisher icons are read from each installed application's registration, when available; no competitor assets are bundled.

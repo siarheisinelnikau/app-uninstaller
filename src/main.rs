@@ -21,7 +21,8 @@ fn main() -> eframe::Result {
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             .with_inner_size([1120., 760.])
-            .with_min_inner_size([900., 620.]),
+            .with_min_inner_size([900., 620.])
+            .with_icon(app_uninstaller::branding::window_icon()),
         renderer: eframe::Renderer::Glow,
         ..Default::default()
     };

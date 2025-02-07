@@ -49,6 +49,7 @@ Keep the JSON journal with its quarantine folder. If the journal is lost, the fo
 - File hashes and repeated checks protect ordinary review mistakes, not hostile concurrent filesystem/registry mutation. Do not run simultaneous cleaners/installers against the same folder. A directory rename is not an OS restore point and cannot undo the publisher's actions.
 - Only Windows x64 portable releases are selected for updates. No release currently exists: an unavailable repository/release is reported as unavailable, never “up to date.” Installation requires a writable EXE folder and a supplied SHA-256 digest or matching `SHA256SUMS.txt`. Checksums use the same GitHub trust channel; Authenticode signing is not configured.
 - A failed helper records `result.txt` under `.AppUninstaller-update-<UUID>` beside the EXE. The most recent report is visible in Settings on the next manual launch. `previous.exe` and staged files remain for manual recovery; helper/staging cleanup is intentionally deferred. A successful launch request does not prove that the new GUI finished starting.
+- In-place updates preserve the original launch path. If that filename contains an older version, Settings shows the actual installed binary version; newly published download assets still use their correct versioned filenames.
 
 ## Verification and screenshots
 

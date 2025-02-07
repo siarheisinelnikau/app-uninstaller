@@ -18,7 +18,13 @@ Date: 2026-10-31 (Europe/Minsk). Work stayed inside `E:\work\github\app-uninstal
 
 ## Packaging
 
-Release build and read-only PE inspection are in progress. This section will be replaced with the final observed artifact hash/size and command outcomes before handoff.
+- `./scripts/check.ps1 -Offline` passed on the final application sources: formatting, Clippy with warnings denied, and all 16 tests.
+- `./scripts/package.ps1 -Offline` successfully compiled the optimized `x86_64-pc-windows-msvc` target using two jobs and static MSVC runtime flags. The initial release compilation took 3 minutes 18 seconds. No executable was launched.
+- Artifact: `dist/AppUninstaller-v0.1.0.exe`, **10,131,968 bytes**.
+- SHA-256: `8a2fc680b67d8f861d74439413ff287406a1ba1bc9790131e3f97568a74872e0`. It matches `dist/SHA256SUMS.txt`.
+- `python scripts/inspect_pe.py dist/AppUninstaller-v0.1.0.exe` passed by reading bytes only: x86_64 machine type, PE32+ format, Windows GUI subsystem. Imports are Windows system DLLs, including `OPENGL32.dll`; no dynamic `VCRUNTIME`/`MSVCP` imports were found. This is not a clean-machine runtime test.
+- `dist/LICENSE` and `dist/THIRD_PARTY_NOTICES.txt` accompany the EXE and checksum. `dist`/`target` are ignored build outputs, not committed binaries.
+- `git diff --check` passed. All source, lockfile, scripts and documentation changes were committed locally. Nothing was published.
 
 ## Not verified
 

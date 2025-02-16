@@ -1,5 +1,5 @@
 //! Original small geometric window mark, authored directly as pixels in code.
-pub fn window_icon() -> eframe::egui::IconData {
+pub fn window_icon() -> egui::IconData {
     const SIDE: usize = 32;
     let mut rgba = vec![0; SIDE * SIDE * 4];
     for y in 0..SIDE {
@@ -18,7 +18,7 @@ pub fn window_icon() -> eframe::egui::IconData {
             rgba[(y * SIDE + x) * 4..(y * SIDE + x + 1) * 4].copy_from_slice(&color);
         }
     }
-    eframe::egui::IconData {
+    egui::IconData {
         rgba,
         width: SIDE as u32,
         height: SIDE as u32,

@@ -9,7 +9,8 @@ repository = "https://github.com/siarheisinelnikau/app-uninstaller"
 
 [dependencies]
 anyhow = "1.0.104"
-eframe = { version = "=0.33.3", default-features = false, features = ["default_fonts", "glow", "accesskit", "x11", "wayland"] }
+egui = { version = "=0.33.3", features = ["default_fonts", "accesskit"] }
+png = "0.18.1"
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 sha2 = "0.10.9"
@@ -18,6 +19,10 @@ ureq = { version = "3.5.0", features = ["json"] }
 uuid = { version = "1.29.0", features = ["v4"] }
 
 [target.'cfg(windows)'.dependencies]
+winit = { version = "=0.30.13", default-features = false, features = ["rwh_06"] }
+egui-winit = { version = "=0.33.3", default-features = false, features = ["clipboard", "links", "accesskit"] }
+egui_software_backend = { version = "=0.0.2", default-features = false, features = ["std"] }
+softbuffer = { version = "=0.4.8", default-features = false }
 windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_Registry", "Win32_System_Threading", "Win32_System_Environment", "Win32_System_SystemInformation", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi"] }
 
 [dev-dependencies]

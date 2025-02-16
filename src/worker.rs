@@ -234,7 +234,7 @@ impl State {
 }
 
 impl Worker {
-    pub fn start(ctx: eframe::egui::Context) -> Self {
+    pub fn start(ctx: egui::Context) -> Self {
         let (tx, commands) = mpsc::sync_channel::<Work>(2);
         let (events, rx) = mpsc::sync_channel::<Event>(16);
         let run = move || {

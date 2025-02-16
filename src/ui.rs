@@ -7,7 +7,7 @@ use crate::{
     updater::Update,
     worker::{Event, Work, Worker},
 };
-use eframe::egui::{self, Color32, RichText};
+use egui::{self, Color32, RichText};
 use std::{collections::HashMap, path::PathBuf};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -31,7 +31,7 @@ struct Confirmation {
     accepted: bool,
 }
 pub struct Desktop {
-    worker: Worker,
+    worker: Option<Worker>,
     page: Page,
     apps: Vec<InstalledApp>,
     icons: HashMap<String, egui::TextureHandle>,
@@ -62,18 +62,107 @@ pub struct Desktop {
     saved_settings: Option<Settings>,
 }
 impl Desktop {
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        cc.egui_ctx.set_visuals(egui::Visuals::light());
-        cc.egui_ctx.style_mut(|style| {
-            style.spacing.item_spacing = egui::vec2(10., 9.);
-            style.spacing.button_padding = egui::vec2(14., 8.);
-            style.visuals.selection.bg_fill = Color32::from_rgb(13, 103, 98);
-            style.visuals.selection.stroke.color = Color32::WHITE;
-            style.visuals.panel_fill = Color32::from_rgb(247, 249, 249);
-            style.animation_time = 0.12;
-        });
+    /// Isolated real UI with deterministic data and no worker or external effects.
+    pub fn preview(ctx: &egui::Context, screen: &str) -> anyhow::Result<Self> {
+        let mut app = Self::create(ctx, None);
+        app.page = match screen {
+            "applications" | "applications-load" => Page::Applications,
+            "settings" => Page::Settings,
+            "leftovers" => Page::Leftovers,
+            "quarantine" => Page::Quarantine,
+            _ => anyhow::bail!("Unknown screen: {screen}"),
+        };
+        app.busy = false;
+        app.data = Some(PathBuf::from(
+            r"C:\Users\Example\AppData\Local\AppUninstaller",
+        ));
+        app.message = "Isolated preview · sample data · removal and update actions disabled".into();
+        app.update_status = "Updates have not been checked in this isolated preview.".into();
+        for (index, (name, publisher, version, kib)) in [
+            ("Atlas Notes", "Atlas Software", "3.4.1", 82432),
+            ("Canvas Studio", "Canvas Tools", "2.8.0", 428032),
+            ("Focus Timer", "Independent Studio", "1.6.2", 18432),
+            ("Northwind Archive", "Northwind", "5.2.0", 102400),
+            ("Orbit Player", "Orbit Project", "4.0.2", 145408),
+            ("Paperwork", "Paperwork Contributors", "0.9.8", 53248),
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let root = PathBuf::from(format!(r"C:\Program Files\{name}"));
+            app.apps.push(InstalledApp {
+                id: format!("preview/{index}"),
+                key_name: name.into(),
+                scope: "All users".into(),
+                view: "64-bit".into(),
+                name: name.into(),
+                publisher: publisher.into(),
+                version: version.into(),
+                estimated_kib: Some(kib),
+                install_location: Some(root.clone()),
+                uninstall_string: format!("\"{}\\uninstall.exe\"", root.display()),
+                ..Default::default()
+            });
+        }
+        app.selected = Some(app.apps[0].id.clone());
+        if screen == "applications-load" {
+            for index in 6..840 {
+                let mut entry = app.apps[index % 6].clone();
+                entry.id = format!("preview/{index}");
+                entry.name = format!("{} {index:03}", entry.name);
+                entry.system_component = index % 4 != 0;
+                app.apps.push(entry);
+            }
+        }
+        if app.page == Page::Leftovers {
+            use crate::leftovers::{Candidate, Fingerprint, Snapshot};
+            let files = [
+                (
+                    PathBuf::from("preferences.json"),
+                    Fingerprint {
+                        bytes: 2048,
+                        sha256: "34e2a1".repeat(10) + "abcd",
+                        directory: false,
+                    },
+                ),
+                (
+                    PathBuf::from("cache"),
+                    Fingerprint {
+                        bytes: 0,
+                        sha256: String::new(),
+                        directory: true,
+                    },
+                ),
+            ]
+            .into_iter()
+            .collect();
+            let snapshot = Snapshot {
+                app_id: "preview/0".into(),
+                app_name: "Atlas Notes".into(),
+                root: PathBuf::from(r"C:\Program Files\Atlas Notes"),
+                evidence: vec![
+                    "Exact folder recorded in the uninstall registration before removal.".into(),
+                    "Folder name matches the app and its registered uninstaller was inside it."
+                        .into(),
+                    "No other app registration uses this folder.".into(),
+                    "Remaining files match their original SHA-256 fingerprints.".into(),
+                ],
+                files,
+            };
+            app.candidate = Some(Candidate {
+                files: snapshot.files.clone(),
+                snapshot,
+            });
+        }
+        Ok(app)
+    }
+    pub fn new(ctx: &egui::Context) -> Self {
+        Self::create(ctx, Some(Worker::start(ctx.clone())))
+    }
+    fn create(ctx: &egui::Context, worker: Option<Worker>) -> Self {
+        crate::design::configure(ctx);
         Self {
-            worker: Worker::start(cc.egui_ctx.clone()),
+            worker,
             page: Page::Applications,
             apps: vec![],
             icons: HashMap::new(),
@@ -105,7 +194,11 @@ impl Desktop {
         }
     }
     fn send(&mut self, work: Work, message: &str) {
-        match self.worker.send(work) {
+        let result = self.worker.as_ref().map_or_else(
+            || Err("Actions are disabled in an isolated preview.".into()),
+            |worker| worker.send(work),
+        );
+        match result {
             Ok(()) => {
                 self.busy = true;
                 self.error = None;
@@ -143,7 +236,11 @@ impl Desktop {
         self.filter_dirty = true;
     }
     fn receive(&mut self, ctx: &egui::Context) {
-        while let Ok(event) = self.worker.rx.try_recv() {
+        while let Some(event) = self
+            .worker
+            .as_ref()
+            .and_then(|worker| worker.rx.try_recv().ok())
+        {
             match event {
                 Event::Ready {
                     settings,
@@ -320,12 +417,21 @@ impl Desktop {
         }
         self.filter_dirty = false;
     }
-    fn applications(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) {
+    fn applications(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
+        use crate::design::*;
+        ui.heading("Installed applications");
+        ui.label(
+            RichText::new(
+                "Choose an app and review its registered uninstaller before making changes.",
+            )
+            .color(MUTED),
+        );
+        ui.add_space(10.);
         ui.horizontal(|ui| {
             if ui
                 .add(
                     egui::TextEdit::singleline(&mut self.query)
-                        .hint_text("Search applications or publishers")
+                        .hint_text("Search by name or publisher")
                         .desired_width(300.),
                 )
                 .changed()
@@ -356,66 +462,85 @@ impl Desktop {
                 self.send(Work::Refresh, "Refreshing installed applications…");
             }
         });
-        if ui
-            .checkbox(
-                &mut self.show_system,
-                "Show system components (inspection only)",
-            )
-            .changed()
-        {
-            self.filter_dirty = true;
-        }
-        self.rebuild_filter();
-        ui.label(
-            RichText::new(format!(
-                "{} shown · {} registrations",
-                self.visible.len(),
-                self.apps.len()
-            ))
-            .small()
-            .color(Color32::DARK_GRAY),
-        );
-        ui.separator();
+        ui.horizontal(|ui| {
+            if ui
+                .checkbox(
+                    &mut self.show_system,
+                    "Include system components (view only)",
+                )
+                .changed()
+            {
+                self.filter_dirty = true;
+            }
+            self.rebuild_filter();
+            ui.label(
+                RichText::new(format!("{} apps shown", self.visible.len()))
+                    .small()
+                    .color(MUTED),
+            );
+        });
+        ui.add_space(6.);
         if !self.inventory_warnings.is_empty() {
-            ui.colored_label(Color32::from_rgb(150,70,0),"Some registry locations could not be read. Removal is blocked until a complete refresh succeeds.");
+            ui.colored_label(Color32::from_rgb(150,70,0),"Inventory is incomplete. Review the read errors in Settings before removing an app.");
         }
         ui.columns(2,|columns| {
-            egui::ScrollArea::vertical().id_salt("inventory").show_rows(&mut columns[0],60.,self.visible.len(),|ui,range| {
+            egui::ScrollArea::vertical().auto_shrink([false,false]).id_salt("inventory").show_rows(&mut columns[0],70.,self.visible.len(),|ui,range| {
                 for row in range {
                     let app=&self.apps[self.visible[row]];
                     let selected=self.selected.as_ref()==Some(&app.id);
-                    egui::Frame::new().fill(if selected{Color32::from_rgb(218,237,234)}else{Color32::WHITE}).inner_margin(8.).show(ui,|ui| {
+                    let width=ui.available_width();
+                    let response=egui::Frame::new().fill(if selected {SELECTION} else {Color32::TRANSPARENT}).inner_margin(10.).show(ui,|ui| {
+                        ui.set_width((width-20.).max(1.));
                         ui.horizontal(|ui| {
-                            if let Some(icon)=self.icons.get(&app.id){ui.image((icon.id(),egui::vec2(28.,28.)));}
+                            if let Some(icon)=self.icons.get(&app.id) {ui.image((icon.id(),egui::vec2(30.,30.)));}
                             ui.vertical(|ui| {
-                                if ui.add(egui::Button::new(RichText::new(&app.name).strong()).selected(selected).frame(false).truncate()).clicked(){self.selected=Some(app.id.clone());}
-                                ui.add(egui::Label::new(RichText::new(format!("{} · {}",if app.publisher.is_empty(){"Unknown publisher"}else{&app.publisher},size(app.estimated_kib.map(|n|n*1024)))).small()).truncate());
+                                ui.spacing_mut().button_padding=egui::vec2(0.,2.);
+                                if ui.add(egui::Button::new(RichText::new(&app.name).strong()).frame(false).truncate()).clicked() {self.selected=Some(app.id.clone());}
+                                ui.add(egui::Label::new(RichText::new(format!("{} · {}",if app.publisher.is_empty(){"Unknown publisher"}else{&app.publisher},size(app.estimated_kib.map(|n|n*1024)))).small().color(MUTED)).truncate());
                             });
                         });
                     });
+                    if response.response.interact(egui::Sense::click()).clicked() {self.selected=Some(app.id.clone());}
                 }
             });
-            egui::ScrollArea::vertical().id_salt("app-details").show(&mut columns[1],|ui| {
-                let app=self.apps.iter().find(|a|self.selected.as_ref()==Some(&a.id)).cloned();
-                if let Some(app)=app {
-                    ui.heading(&app.name);
-                    ui.label(if app.publisher.is_empty(){"Publisher not supplied"}else{&app.publisher});
-                    ui.add_space(10.);
-                    egui::Grid::new("metadata").num_columns(2).spacing([16.,10.]).show(ui,|ui| {
-                        for (label,value) in [("Version",app.version.clone()),("Size",size(app.estimated_kib.map(|n|n*1024))),("Registration",format!("{} · {}",app.scope,app.view)),("Install folder",app.install_location.as_ref().map(|p|p.display().to_string()).unwrap_or_else(||"Not supplied".into()))] {
-                            ui.strong(label);ui.label(if value.is_empty(){"Not supplied"}else{&value});ui.end_row();
-                        }
-                    });
-                    ui.add_space(14.);ui.strong("Registered uninstall command");
-                    ui.add(egui::Label::new(RichText::new(if app.uninstall_string.is_empty(){"Not supplied"}else{&app.uninstall_string}).monospace()).wrap());
-                    ui.add_space(10.);
-                    ui.label("The publisher's uninstaller runs first. AppUninstaller never silently removes applications or cleans the registry.");
-                    if ui.add_enabled(!self.busy&&!app.system_component&&self.inventory_warnings.is_empty(),egui::Button::new(RichText::new("Review uninstall…").color(Color32::WHITE)).fill(Color32::from_rgb(13,103,98))).clicked(){self.send(Work::Prepare(app),"Validating registration and capturing bounded ownership evidence…");}
-                    ui.add_space(12.);ui.small("Unsupported command formats are refused. Administrator-only uninstallers may need to be run separately using Windows. No elevation is requested by this app.");
-                }else{ui.heading("Know what you are removing");ui.label("Select an application to see its publisher, registration source and exact uninstall command.");ui.add_space(14.);ui.label("1. Review the registered action\n2. Complete the publisher's uninstaller\n3. Inspect proven leftovers\n4. Quarantine only what you select");}
+            egui::ScrollArea::vertical().auto_shrink([false,false]).id_salt("app-details").show(&mut columns[1],|ui| {
+                egui::Frame::new().fill(SURFACE).inner_margin(20.).show(ui,|ui| {
+                    ui.set_width((ui.available_width()).max(1.));
+                    let app=self.apps.iter().find(|a|self.selected.as_ref()==Some(&a.id)).cloned();
+                    if let Some(app)=app {
+                        ui.heading(&app.name);
+                        ui.label(RichText::new(if app.publisher.is_empty(){"Publisher not supplied"}else{&app.publisher}).color(MUTED));
+                        ui.add_space(8.);
+                        ui.horizontal(|ui| {
+                            if ui.add_enabled(!self.busy&&!app.system_component&&self.inventory_warnings.is_empty(),egui::Button::new(RichText::new("Review uninstall…").color(Color32::WHITE)).fill(ACCENT)).clicked() {self.send(Work::Prepare(app.clone()),"Validating registration and capturing bounded ownership evidence…");}
+                        });
+                        ui.label(RichText::new("Nothing changes until you confirm the registered action.").small().color(MUTED));
+                        ui.add_space(12.);
+                        let value_width=(ui.available_width()-116.).max(90.);
+                        egui::Grid::new("metadata").num_columns(2).min_col_width(96.).max_col_width(value_width).spacing([16.,8.]).show(ui,|ui| {
+                            for (label,value) in [("Version",app.version.clone()),("Size",size(app.estimated_kib.map(|n|n*1024))),("Installed for",format!("{} · {}",app.scope,app.view)),("Folder",app.install_location.as_ref().map(|p|p.display().to_string()).unwrap_or_else(||"Not supplied".into()))] {
+                                ui.add(egui::Label::new(RichText::new(label).color(MUTED)).wrap_mode(egui::TextWrapMode::Extend));
+                                ui.add(egui::Label::new(if value.is_empty(){"Not supplied"}else{&value}).halign(egui::Align::Min).wrap());ui.end_row();
+                            }
+                        });
+                        ui.add_space(16.);ui.strong("Registered uninstall command");
+                        egui::Frame::new().fill(BACKGROUND).inner_margin(10.).show(ui,|ui| {
+                            ui.add(egui::Label::new(RichText::new(if app.uninstall_string.is_empty(){"Not supplied"}else{&app.uninstall_string}).monospace()).halign(egui::Align::Min).selectable(true).wrap());
+                        });
+                        ui.add_space(10.);
+                        ui.collapsing("How removal and recovery work",|ui| {
+                            ui.label("After uninstalling, review proven leftovers and choose whether to quarantine them. Quarantine is reversible; the publisher’s uninstall is not.");
+                            ui.small("Uncertain ownership and unsupported command formats are refused. Administrator-only uninstallers may need Windows Installed apps. No automatic elevation or registry cleaning.");
+                        });
+                    } else {
+                        ui.heading("Select an application");
+                        ui.label("See its publisher, installation folder and registered removal action here.");
+                        ui.add_space(12.);
+                        ui.label("Review → Uninstall → Inspect leftovers → Quarantine if needed");
+                    }
+                });
             });
         });
-        let _ = ctx;
     }
     fn leftovers(&mut self, ui: &mut egui::Ui) {
         let mut action = None;
@@ -525,10 +650,13 @@ impl Desktop {
         }
     }
     fn settings(&mut self, ui: &mut egui::Ui) {
+        ui.set_max_width(760.);
         ui.heading("Settings & updates");
         ui.label(format!(
             "AppUninstaller {VERSION} · Windows x64 portable · MIT license"
         ));
+        ui.add_space(10.);
+        ui.strong("Updates");
         ui.hyperlink_to("Canonical repository", REPOSITORY);
         ui.add_space(10.);
         let previous = self.settings.clone();
@@ -545,7 +673,7 @@ impl Desktop {
             self.saved_settings = Some(previous);
             self.send(Work::Save(self.settings.clone()), "Saving settings…");
         }
-        ui.small("Enabled by default. Checks contact GitHub in the background. Turning this off prevents the next startup request. Downloads and installation always require your action.");
+        ui.small("Checks quietly in the background. Turning this off prevents startup requests; manual checking stays available. Downloads and installation require your action.");
         ui.label(&self.update_status);
         if ui
             .add_enabled(
@@ -596,7 +724,8 @@ impl Desktop {
             }
         }
         ui.separator();
-        ui.strong("Local storage");
+        ui.strong("About & local storage");
+        ui.label("CPU rendering · Windows GDI · no graphics API context");
         if let Some(data) = &self.data {
             ui.monospace(data.display().to_string());
         } else {
@@ -668,31 +797,42 @@ impl Desktop {
         }
     }
 }
-impl eframe::App for Desktop {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+impl Desktop {
+    pub fn update(&mut self, ctx: &egui::Context) {
         self.receive(ctx);
-        egui::TopBottomPanel::top("header").show(ctx, |ui| {
-            ui.add_space(8.);
-            ui.horizontal(|ui| {
-                ui.heading(RichText::new("AppUninstaller").color(Color32::from_rgb(13, 103, 98)));
-                ui.label("Remove with a reason. Keep a way back.");
+        egui::TopBottomPanel::top("header")
+            .frame(
+                egui::Frame::new()
+                    .fill(crate::design::SURFACE)
+                    .inner_margin(egui::Margin::symmetric(24, 12)),
+            )
+            .show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new("AppUninstaller")
+                            .size(24.)
+                            .strong()
+                            .color(crate::design::ACCENT),
+                    );
+                    ui.label(
+                        RichText::new("A careful way to remove apps.").color(crate::design::MUTED),
+                    );
+                });
+
+                ui.horizontal(|ui| {
+                    for (page, label) in [
+                        (Page::Applications, "Applications"),
+                        (Page::Leftovers, "Leftover review"),
+                        (Page::Quarantine, "Quarantine"),
+                        (Page::Settings, "Settings"),
+                    ] {
+                        ui.selectable_value(&mut self.page, page, label);
+                    }
+                    if self.update.is_some() && ui.button("Update available").clicked() {
+                        self.page = Page::Settings;
+                    }
+                });
             });
-            ui.add_space(5.);
-            ui.horizontal(|ui| {
-                for (page, label) in [
-                    (Page::Applications, "Applications"),
-                    (Page::Leftovers, "Leftover review"),
-                    (Page::Quarantine, "Quarantine"),
-                    (Page::Settings, "Settings"),
-                ] {
-                    ui.selectable_value(&mut self.page, page, label);
-                }
-                if self.update.is_some() && ui.button("Update available").clicked() {
-                    self.page = Page::Settings;
-                }
-            });
-            ui.add_space(5.);
-        });
         egui::TopBottomPanel::bottom("status").show(ctx, |ui| {
             if let Some(error) = self.error.clone() {
                 ui.horizontal_wrapped(|ui| {
@@ -709,18 +849,24 @@ impl eframe::App for Desktop {
                 ui.label(&self.message);
             });
         });
-        egui::CentralPanel::default().show(ctx, |ui| {
-            if self.page == Page::Applications {
-                self.applications(ctx, ui);
-            } else {
-                egui::ScrollArea::vertical().show(ui, |ui| match self.page {
-                    Page::Leftovers => self.leftovers(ui),
-                    Page::Quarantine => self.quarantine(ui),
-                    Page::Settings => self.settings(ui),
-                    _ => {}
-                });
-            }
-        });
+        egui::CentralPanel::default()
+            .frame(
+                egui::Frame::new()
+                    .fill(crate::design::BACKGROUND)
+                    .inner_margin(24.),
+            )
+            .show(ctx, |ui| {
+                if self.page == Page::Applications {
+                    self.applications(ctx, ui);
+                } else {
+                    egui::ScrollArea::vertical().show(ui, |ui| match self.page {
+                        Page::Leftovers => self.leftovers(ui),
+                        Page::Quarantine => self.quarantine(ui),
+                        Page::Settings => self.settings(ui),
+                        _ => {}
+                    });
+                }
+            });
         self.confirmations(ctx);
     }
 }

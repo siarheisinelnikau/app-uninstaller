@@ -45,6 +45,8 @@ if imports_rva:
         descriptor += 20
 if any(name.lower().startswith(("vcruntime", "msvcp")) for name in imports):
     raise SystemExit("Unexpected dynamic MSVC runtime dependency")
+if any(name.lower().startswith(("opengl", "d3d", "dxgi", "vulkan")) for name in imports):
+    raise SystemExit("Unexpected GPU graphics API dependency in the CPU/GDI build")
 print(json.dumps({
     "file": path.name,
     "bytes": len(image),

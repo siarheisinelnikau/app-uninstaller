@@ -37,5 +37,6 @@ for package in sorted(metadata["packages"], key=lambda p: (p["name"], p["version
     for path in sorted(paths):
         parts.append(f'\n--- {path.relative_to(folder).as_posix()} ---\n')
         parts.append(path.read_text(encoding="utf-8", errors="replace") + "\n")
-(ROOT / "THIRD_PARTY_NOTICES.txt").write_text("".join(parts), encoding="utf-8", newline="\n")
+text = "\n".join(line.rstrip() for line in "".join(parts).splitlines()) + "\n"
+(ROOT / "THIRD_PARTY_NOTICES.txt").write_text(text, encoding="utf-8", newline="\n")
 print("Updated THIRD_PARTY_NOTICES.txt from the local dependency cache.")

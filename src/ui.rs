@@ -60,6 +60,7 @@ pub struct Desktop {
     progress: Option<(u64, u64)>,
     staged: Option<PathBuf>,
     saved_settings: Option<Settings>,
+    exit_requested: bool,
 }
 impl Desktop {
     /// Isolated real UI with deterministic data and no worker or external effects.
@@ -191,6 +192,7 @@ impl Desktop {
             progress: None,
             staged: None,
             saved_settings: None,
+            exit_requested: false,
         }
     }
     fn send(&mut self, work: Work, message: &str) {
@@ -235,12 +237,14 @@ impl Desktop {
         }
         self.filter_dirty = true;
     }
-    fn receive(&mut self, ctx: &egui::Context) {
+    pub fn receive_background(&mut self, ctx: &egui::Context) -> bool {
+        let mut changed = false;
         while let Some(event) = self
             .worker
             .as_ref()
             .and_then(|worker| worker.rx.try_recv().ok())
         {
+            changed = true;
             match event {
                 Event::Ready {
                     settings,
@@ -375,7 +379,7 @@ impl Desktop {
                     self.message="Update downloaded and SHA-256 verified. Restart to install when you are ready.".into();
                 }
                 Event::Installing => {
-                    ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                    self.exit_requested = true;
                 }
                 Event::Error(error) => {
                     self.busy = false;
@@ -387,6 +391,10 @@ impl Desktop {
                 }
             }
         }
+        changed
+    }
+    pub fn exit_requested(&self) -> bool {
+        self.exit_requested
     }
     fn rebuild_filter(&mut self) {
         if !self.filter_dirty {
@@ -799,7 +807,7 @@ impl Desktop {
 }
 impl Desktop {
     pub fn update(&mut self, ctx: &egui::Context) {
-        self.receive(ctx);
+        self.receive_background(ctx);
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
@@ -878,5 +886,26 @@ fn size(bytes: Option<u64>) -> String {
         }
         Some(n) if n >= 1024 * 1024 => format!("{:.1} MB", n as f64 / (1024. * 1024.)),
         Some(n) => format!("{:.1} KB", n as f64 / 1024.),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn background_progress_and_exit_are_drained_without_building_a_frame() {
+        let ctx = egui::Context::default();
+        let (worker, events) = Worker::test_channel();
+        let mut app = Desktop::create(&ctx, Some(worker));
+        let pass = ctx.cumulative_pass_nr();
+        events.send(Event::Progress(512, 1024)).unwrap();
+        assert!(app.receive_background(&ctx));
+        assert_eq!(app.progress, Some((512, 1024)));
+        assert_eq!(ctx.cumulative_pass_nr(), pass);
+        events.send(Event::Installing).unwrap();
+        assert!(app.receive_background(&ctx));
+        assert!(app.exit_requested());
+        assert_eq!(ctx.cumulative_pass_nr(), pass);
+        assert!(!app.receive_background(&ctx));
     }
 }

@@ -234,6 +234,12 @@ impl State {
 }
 
 impl Worker {
+    #[cfg(test)]
+    pub(crate) fn test_channel() -> (Self, SyncSender<Event>) {
+        let (tx, _commands) = mpsc::sync_channel(2);
+        let (events, rx) = mpsc::sync_channel(16);
+        (Self { tx, rx }, events)
+    }
     pub fn start(ctx: egui::Context) -> Self {
         let (tx, commands) = mpsc::sync_channel::<Work>(2);
         let (events, rx) = mpsc::sync_channel::<Event>(16);

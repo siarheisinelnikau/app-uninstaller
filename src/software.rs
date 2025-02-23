@@ -95,6 +95,7 @@ impl Host {
                 Window::default_attributes()
                     .with_title("AppUninstaller")
                     .with_visible(false)
+                    .with_active(!self.fixture)
                     .with_inner_size(LogicalSize::new(1120., 760.))
                     .with_min_inner_size(LogicalSize::new(900., 620.))
                     .with_window_icon(Some(icon)),
@@ -113,6 +114,12 @@ impl Host {
             Some(8192),
         );
         input.init_accesskit(event_loop, &window, self.proxy.clone());
+        if self.fixture {
+            // The quiet diagnostic must not steal focus or consume unrelated mouse input.
+            window
+                .set_cursor_hittest(false)
+                .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+        }
         self.frame_interval = monitor_interval(&window);
         window.set_visible(true);
         let desktop = if self.fixture {
@@ -273,6 +280,17 @@ impl ApplicationHandler<Event> for Host {
         self.counters.wakeups.fetch_add(1, Ordering::Relaxed);
     }
     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: Event) {
+        // Drain bounded worker results without constructing a hidden UI. This also
+        // keeps downloads/progress and a user-requested updater exit from blocking.
+        if let Some(canvas) = &mut self.canvas {
+            if canvas.desktop.receive_background(&self.ctx) {
+                self.repaint.invalidate();
+            }
+            if canvas.desktop.exit_requested() {
+                event_loop.exit();
+                return;
+            }
+        }
         match event {
             Event::Repaint { when, pass } => {
                 self.counters.repaint_events.fetch_add(1, Ordering::Relaxed);
@@ -402,7 +420,7 @@ pub fn run(diagnostic_path: Option<PathBuf>, duration: Option<u64>) -> Result<()
     run_internal(diagnostic_path, duration, false)
 }
 pub fn verify(path: PathBuf) -> Result<()> {
-    run_internal(Some(path), Some(18), true)
+    run_internal(Some(path), Some(36), true)
 }
 fn run_internal(
     diagnostic_path: Option<PathBuf>,
@@ -475,6 +493,8 @@ impl Diagnostics {
             let mut previous_raster = 0;
             let mut previous_presents = 0;
             let mut samples = vec![];
+            let mut quiet_samples = 0;
+            let mut lifecycle_phase = 0;
             let logical_processors = std::thread::available_parallelism().map_or(1, usize::from);
             loop {
                 std::thread::sleep(Duration::from_secs(1));
@@ -488,23 +508,42 @@ impl Diagnostics {
                     .zip(previous_cpu)
                     .map(|(after, before)| 100. * (after - before) / elapsed);
                 samples.push(serde_json::json!({"elapsed_seconds":start.elapsed().as_secs_f64(),"phase":counters.phase.load(Ordering::Relaxed),"visible":counters.visible.load(Ordering::Relaxed),"one_core_percent":one_core_percent,"machine_percent":one_core_percent.map(|value|value/logical_processors as f64),"ui_passes":ui-previous_ui,"rasterizations":raster-previous_raster,"presentations":presents-previous_presents}));
+                let quiet =
+                    ui == previous_ui && raster == previous_raster && presents == previous_presents;
                 previous_cpu = cpu;
                 previous_time = now;
                 previous_ui = ui;
                 previous_raster = raster;
                 previous_presents = presents;
                 let report = serde_json::json!({"backend":"CPU / Win32 GDI","executable":std::env::current_exe().ok(),"pid":std::process::id(),"release_build":!cfg!(debug_assertions),"fixture":lifecycle,"ui_passes":ui,"rasterizations":raster,"presentations":presents,"unchanged_scenes":counters.equal.load(Ordering::Relaxed),"cache_presentations":counters.cache_presents.load(Ordering::Relaxed),"event_loop_wakeups":counters.wakeups.load(Ordering::Relaxed),"repaint_events":counters.repaint_events.load(Ordering::Relaxed),"input_events":counters.input_events.load(Ordering::Relaxed),"max_draw_ms":counters.max_frame_micros.load(Ordering::Relaxed) as f64/1000.,"samples":samples});
-                if lifecycle && samples.len() == 6 {
-                    let _ = proxy.send_event(Event::DiagnosticVisibility(false));
-                }
-                if lifecycle && samples.len() == 12 {
-                    let _ = proxy.send_event(Event::DiagnosticVisibility(true));
-                }
                 if let Some(parent) = path.parent() {
                     let _ = std::fs::create_dir_all(parent);
                 }
                 if let Ok(bytes) = serde_json::to_vec_pretty(&report) {
                     let _ = std::fs::write(&path, bytes);
+                }
+                if lifecycle {
+                    if quiet && counters.phase.load(Ordering::Relaxed) == lifecycle_phase {
+                        quiet_samples += 1;
+                    } else {
+                        quiet_samples = 0;
+                    }
+                    if quiet_samples >= 5 {
+                        quiet_samples = 0;
+                        match lifecycle_phase {
+                            0 => {
+                                let _ = proxy.send_event(Event::DiagnosticVisibility(false));
+                            }
+                            1 => {
+                                let _ = proxy.send_event(Event::DiagnosticVisibility(true));
+                            }
+                            _ => {
+                                let _ = proxy.send_event(Event::DiagnosticExit);
+                                break;
+                            }
+                        }
+                        lifecycle_phase += 1;
+                    }
                 }
                 if duration.is_some_and(|seconds| start.elapsed().as_secs() >= seconds) {
                     let _ = proxy.send_event(Event::DiagnosticExit);

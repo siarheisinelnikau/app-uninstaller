@@ -47,6 +47,7 @@ struct Canvas {
     bitmap: Vec<u32>,
     size: [u32; 2],
     occluded: bool,
+    needs_exposure: bool,
 }
 impl Canvas {
     fn visible(&self) -> bool {
@@ -139,6 +140,7 @@ impl Host {
             bitmap: vec![],
             size: [0, 0],
             occluded: false,
+            needs_exposure: true,
         });
         self.repaint.invalidate();
         Ok(())
@@ -230,7 +232,7 @@ impl Host {
             }
         }
         // OS exposure needs the retained bitmap. Unchanged input does not need a blit.
-        if changed || !requested {
+        if changed || !requested || canvas.needs_exposure {
             if canvas.size != size {
                 canvas
                     .surface
@@ -249,6 +251,7 @@ impl Host {
             buffer
                 .present()
                 .map_err(|error| anyhow::anyhow!(error.to_string()))?;
+            canvas.needs_exposure = false;
             self.counters.presents.fetch_add(1, Ordering::Relaxed);
             if !changed {
                 self.counters.cache_presents.fetch_add(1, Ordering::Relaxed);
@@ -324,6 +327,7 @@ impl ApplicationHandler<Event> for Host {
                         .phase
                         .store(if visible { 2 } else { 1 }, Ordering::Relaxed);
                     if visible {
+                        canvas.needs_exposure = true;
                         self.repaint.invalidate();
                     }
                 }
@@ -357,10 +361,12 @@ impl ApplicationHandler<Event> for Host {
             WindowEvent::Occluded(occluded) => {
                 canvas.occluded = occluded;
                 if !occluded {
+                    canvas.needs_exposure = true;
                     self.repaint.invalidate();
                 }
             }
             WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => {
+                canvas.needs_exposure = true;
                 self.urgent = true;
                 self.repaint.invalidate()
             }

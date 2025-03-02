@@ -22,6 +22,7 @@ try {
     $result = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
     if ($result.pid -ne $process.Id -or -not $result.fixture) { throw 'Unexpected diagnostic process or workload' }
     if ($result.input_events -ne 0) { throw 'External input contaminated the quiet verification interval' }
+    if ($result.cache_presentations -lt 1) { throw 'Restore did not present the retained bitmap' }
     foreach ($phase in @(0, 1, 2)) {
         $quietRun = 0
         $longestQuietRun = 0

@@ -1,0 +1,29 @@
+{
+  "file": "AppUninstaller-v0.1.0.exe",
+  "bytes": 9609728,
+  "sha256": "70c14bc61c989806137ef1bd9367edc27031a528393f4046bf5be73167a50197",
+  "architecture": "x86_64",
+  "subsystem": "Windows GUI",
+  "imports": [
+    "advapi32.dll",
+    "ADVAPI32.dll",
+    "api-ms-win-core-synch-l1-2-0.dll",
+    "bcrypt.dll",
+    "bcryptprimitives.dll",
+    "dwmapi.dll",
+    "gdi32.dll",
+    "imm32.dll",
+    "KERNEL32.dll",
+    "kernel32.dll",
+    "ntdll.dll",
+    "ole32.dll",
+    "oleaut32.dll",
+    "shell32.dll",
+    "shlwapi.dll",
+    "uiautomationcore.dll",
+    "user32.dll",
+    "USER32.dll",
+    "uxtheme.dll",
+    "ws2_32.dll"
+  ]
+}

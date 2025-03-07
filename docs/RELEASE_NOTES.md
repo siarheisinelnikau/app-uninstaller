@@ -13,6 +13,12 @@ This is a local, unpublished release candidate. There is no preceding published 
 
 ## Requirements and current limits
 
-Windows x64 with an OpenGL-compatible driver. Administrator-only uninstallers may require Windows Installed apps; AppUninstaller does not request elevation. Leftover suggestions deliberately exclude uncertain ownership, shared/system/document locations, custom/vendor-nested installation folders and registry values. Quarantine preserves disk usage and does not undo the publisher's uninstall.
+Windows x64; the application uses CPU rendering with Win32 GDI, with no OpenGL/DirectX context. Administrator-only uninstallers may require Windows Installed apps; AppUninstaller does not request elevation. Leftover suggestions deliberately exclude uncertain ownership, shared/system/document locations, custom/vendor-nested installation folders and registry values. Quarantine preserves disk usage and does not undo the publisher's uninstall.
 
-Automated fixture verification and compilation are recorded separately in `VERIFICATION.md`. GUI operation, live inventory/uninstall, real application/settings screenshots and a full published-release update/restart have **not** been verified in the unattended session. Complete `MANUAL_TESTS.md` before public distribution. No release has been created or uploaded.
+Automated fixture verification and compilation are recorded separately in `VERIFICATION.md`. The updated UI has real application-generated client-area screenshots. Isolated visible/hidden/restore rendering and 20 fixture tests are verified. Live uninstall, hands-on interaction/scaling and a full published-release update/restart remain unverified. Complete `MANUAL_TESTS.md` before public distribution. No release has been created or uploaded.
+
+## Improved during local review
+
+- Replaced the OpenGL host with CPU rasterization and GDI presentation. Settled visible/hidden/restored fixture windows stop layout, rasterization and presentation; unchanged scenes reuse cached pixels.
+- Improved typography, contrast, navigation and spacing. The uninstall review action stays visible at the minimum window size; technical explanations are disclosed when needed.
+- Added bounded offscreen screenshot capture and an isolated runtime rendering check, without desktop automation or effects on installed applications.

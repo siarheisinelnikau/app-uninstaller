@@ -2,7 +2,7 @@
 
 A Windows desktop application for reviewing installed programs, running their registered uninstallers, and deciding what to do with proven leftovers. Original implementation and interface; no affiliation with Revo or use of competitor code/assets.
 
-**Status:** first local implementation, version 0.1.0. Windows x64 is the packaging target. The repository and releases have not been published. Interactive Windows validation is pending; this is not a claim of production readiness.
+**Status:** first local implementation, version 0.1.0. Windows x64 is the packaging target. The repository and releases have not been published. CPU/GDI rendering, isolated idle/hidden/restore behavior and static UI screenshots have been checked. Destructive live workflows and final hands-on responsiveness remain pending.
 
 ## What works in the code
 
@@ -11,11 +11,11 @@ A Windows desktop application for reviewing installed programs, running their re
 - Bounded ownership evidence captured before removal. After the registration disappears, review only unchanged items in the exact registered installation folder. Every suggested path has an explanation and file SHA-256; nothing is selected by default.
 - Reversible quarantine by same-volume folder rename, with a flushed JSON recovery journal written first. Restore refuses to overwrite an existing original folder or restore changed quarantine contents. Quarantine retains the same disk usage; permanent deletion remains manual.
 - Settings with installed version, **Check for updates**, persistent **Check for updates on startup** (enabled by default), release notes, progress and user-initiated **Download and install**. A separate confirmation restarts into the verified update. A helper copy of the existing EXE replaces the file after exit, retains `previous.exe`, and rolls back failed replacement/restart attempts.
-- One bounded background worker for registry, filesystem, process and network work; a virtualized inventory and reactive egui desktop UI. No continuous application repaint loop or background scanning.
+- One bounded background worker for registry, filesystem, process and network work; a virtualized inventory and reactive egui desktop UI. No continuous application repaint loop or background scanning. Unchanged scenes skip rasterization; native exposure can reuse the retained bitmap. Ordinary settled hidden windows do not build or draw the UI.
 
 ## Build and review
 
-Requires a Windows x64 Rust MSVC toolchain (Rust 1.92 or later; verified with 1.96.1), the MSVC linker and Windows SDK. The UI uses eframe 0.33.3 / OpenGL and requires a suitable graphics driver. No WebView runtime, installer, service, driver or external AI runtime is needed. The x64 release statically links the MSVC runtime where supported.
+Requires a Windows x64 Rust MSVC toolchain (Rust 1.92 or later; verified with 1.96.1), the MSVC linker and Windows SDK. The UI uses egui 0.33.3 with CPU rasterization and Win32 GDI presentation. The application creates no OpenGL, DirectX or Vulkan context. No WebView runtime, installer, service, driver or external AI runtime is needed. The x64 release statically links the MSVC runtime where supported.
 
 ```powershell
 Set-Location E:\work\github\app-uninstaller
@@ -55,7 +55,29 @@ Keep the JSON journal with its quarantine folder. If the journal is lost, the fo
 
 See [verification record](docs/VERIFICATION.md), [architecture](docs/ARCHITECTURE.md), [manual validation](docs/MANUAL_TESTS.md) and [initial release notes draft](docs/RELEASE_NOTES.md).
 
-**Real application and Settings screenshots are pending.** The unattended implementation session prohibits launching GUI applications, desktop control and screen capture. No screenshots or mock screenshots have been fabricated, and no broken image placeholders are included. Capture real application/settings images after authorized interactive validation, then embed them here with English captions.
+These are real client-area PNGs saved by the packaged application's production UI components and CPU rasterizer. They use deterministic sample registrations, contain no personal inventory, and do not show native Windows chrome. All actions are disabled in capture mode.
+
+![Installed applications and registered uninstall action](docs/screenshots/applications.png)
+
+Installed applications: a focused list, readable installation details and a review action visible without scrolling, including at the minimum supported width.
+
+![Settings with startup update preference and CPU rendering details](docs/screenshots/settings.png)
+
+Settings: installed version, persistent startup-check preference, manual update checking and local recovery storage.
+
+![Explainable leftover review with explicit quarantine selection](docs/screenshots/leftovers.png)
+
+Leftover review: ownership evidence and an unchecked selection before reversible quarantine. This is sample leftover data rendered by the real screen; no real application was uninstalled.
+
+To reproduce static captures without desktop automation:
+
+```powershell
+./scripts/capture.ps1
+```
+
+Each capture runs offscreen, waits for stable layout, saves a PNG plus metadata, and exits with a finite frame/time budget. `--screenshot ABSOLUTE_PATH --screen applications|settings|leftovers|quarantine [--size WIDTHxHEIGHT]` is a developer-only mode, not part of consumer settings. Captures verify visual layout, not keyboard/mouse behavior or normal hidden operation.
+
+For the separate bounded runtime gate, run `./scripts/verify-rendering.ps1`. It uses 840 isolated sample registrations, shows/hides/restores only its own nonactivating, pointer-transparent test window, records CPU and actual UI/raster/presentation counters, and exits after three settled five-second intervals (36-second internal limit). It never accesses the registry, network, normal settings or real leftovers. A nonzero input count invalidates a quiet sample. See the evidence record for results and remaining limits.
 
 ## License
 

@@ -1,6 +1,6 @@
 # Deferred Windows validation
 
-These checks require a later, authorized interactive session. They were not performed while the user was AFK. Use a disposable Windows VM and deliberately installed disposable programs for destructive tests.
+The CPU/GDI runtime gate and application-generated client-area captures are now recorded in VERIFICATION.md. The remaining hands-on checks below require a later authorized interactive session. Use a disposable Windows VM and deliberately installed disposable programs for destructive tests.
 
 ## Desktop and inventory
 
@@ -29,5 +29,5 @@ These checks require a later, authorized interactive session. They were not perf
 
 ## Documentation before publishing
 
-- Capture real **Applications**, **Leftover review** and **Settings & updates** screenshots after validation. Add working repository-relative images to README with English alt text. No mock screenshots.
+- README already includes real app-generated **Applications**, **Leftover review** and **Settings** client-area PNGs with clearly labeled fixtures. Refresh them after visual changes; native window chrome and actual keyboard/mouse interactions remain separate checks.
 - Update the verification record and draft release notes with actual outcomes. Review all limitations and third-party notices. Publish only with separate user authorization through the connected GitHub plugin.

@@ -1,6 +1,6 @@
 # Architecture
 
-The application is a Windows-first Rust binary. `main.rs` dispatches either the desktop UI or the explicit `--apply-update` helper mode. No inventory, uninstaller, network request or self-replacement runs during unit tests or compilation.
+The application is a Windows-first Rust binary. `main.rs` dispatches the desktop UI, explicit `--apply-update` helper, bounded `--screenshot` capture, or isolated `--verify-rendering` diagnostics. No inventory, uninstaller, network request or self-replacement runs during unit tests or compilation.
 
 ## Boundaries
 
@@ -12,9 +12,11 @@ The application is a Windows-first Rust binary. `main.rs` dispatches either the 
 | `settings.rs` | Startup update preference, per-user data location | Small JSON read; atomic replacement on save |
 | `updater.rs` | Stable-release selection, checksums, bounded HTTPS downloads, helper/rollback | Network/staging only after check/download commands; replacement only in helper |
 | `worker.rs` | Serial operation sequencing and revalidation | One worker, two queued commands, sixteen result messages |
-| `ui.rs` | Inventory, review, consent, recovery, settings/update UI | Sends explicit commands; uploads prepared icon textures |
+| `ui.rs` / `design.rs` | Inventory, review, consent, recovery, settings and shared visual roles | Sends explicit commands; uploads prepared icon textures |
+| `software.rs` / `repaint.rs` | Reactive winit host, CPU rasterizer, retained bitmap, Win32 GDI and scheduling | Native window/presentation; optional bounded diagnostic counters |
+| `capture.rs` | Actual production UI rendered offscreen with isolated fixtures | Writes a selected client-area PNG and metadata, then exits |
 
-The worker sleeps on channel receive when idle. It wakes egui only when publishing a result/progress update. The UI uses filtered/sorted index snapshots and virtual rows for the installed-app list. It does not scan the registry/filesystem, hash files, wait for uninstallers, or perform network work in a frame callback. Snapshots are cloned only when submitting review/quarantine work, rather than on every frame. Busy spinners repaint during pending work; the idle app does not request continuous redraws. Actual idle CPU, frame latency, scaling and graphics compatibility still require measurement on a real desktop.
+The worker sleeps on channel receive when idle. It wakes egui only when publishing a result/progress update. The UI uses filtered/sorted index snapshots and virtual rows for the installed-app list. It does not scan the registry/filesystem, hash files, wait for uninstallers, or perform network work in a frame callback. Snapshots are cloned only when submitting review/quarantine work, rather than on every frame. Busy spinners repaint during pending work; the idle app does not request continuous redraws. A bounded isolated runtime gate measured zero settled UI/raster/presentation work in visible, hidden and restored states. Hands-on responsiveness, native scaling and broader platform compatibility remain separate checks.
 
 ## Ownership and quarantine
 
@@ -41,3 +43,15 @@ Staged reports/backups are retained and surfaced on next launch. Signed binaries
 - [eframe 0.33.3 documentation](https://docs.rs/eframe/0.33.3/eframe/)
 
 The application title/window mark and UI arrangement are original code. Publisher icons are read from each installed application's registration, when available; no competitor assets are bundled.
+
+## CPU rendering and redraw boundaries
+
+The Windows dependency graph contains no eframe/glow/glutin/wgpu renderer. egui builds clipped shapes; `egui_software_backend` rasterizes on the CPU; softbuffer's Win32 implementation presents via GDI. Windows composition remains the operating system's responsibility. AccessKit is initialized while the native window is still invisible, before its first show. The product uses the installed Segoe UI font when available, with bundled egui fonts as fallback; no Windows font file is redistributed.
+
+The host sleeps in `Wait`/`WaitUntil`, preserves finite egui deadlines, coalesces queued redraw requests and discards stale repaint generations. High-frequency input is coalesced to the monitor cadence; this does not schedule periodic idle frames. Mouse buttons and keys are handled promptly. Shape, scale, size and texture changes invalidate the cached CPU scene. Equal scenes skip rasterization and input-driven presentation. OS exposure can blit the retained bitmap. Hidden/minimized windows retain dirty state and stop UI layout, rasterization and presentation until restoration.
+
+`--verify-rendering` initializes the normal host with 840 in-memory registrations and no worker. Its own finite diagnostic events hide/restore that disposable window. Reports count UI passes, actual rasterizations, presentations, exposure blits, wakeups and input events separately; CPU is sampled off the UI thread. These fixture results do not certify real uninstaller I/O, live icon enumeration, input timing or every graphics/Windows configuration.
+
+`--screenshot` uses the same `Desktop::update`, visual system, fonts and CPU rasterizer without creating a native window. It uses no worker, registry, network or normal settings. Stable layout must be reached within 12 frames and five seconds. The parent capture script applies a 20-second process timeout. The resulting PNG verifies only the rendered client area, not native chrome or interactive behavior.
+
+Worker results are drained from native user events independently of layout, including while hidden. Dirty state and texture updates are kept for the next visible frame. A user-initiated updater exit can complete without forcing a hidden frame. Restore/resize sets an exposure flag so a coalesced native paint request still gets the retained bitmap.

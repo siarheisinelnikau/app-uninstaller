@@ -102,6 +102,32 @@ fn dword(key: &Key, name: &str) -> Option<u32> {
     }
     Some(u32::from_le_bytes(bytes.try_into().ok()?))
 }
+pub fn registration_exists(app: &InstalledApp) -> Result<bool> {
+    anyhow::ensure!(
+        !app.key_name.is_empty() && !app.key_name.contains('\\'),
+        "Invalid registration key"
+    );
+    let root = match app.scope.as_str() {
+        "Current user" => HKEY_CURRENT_USER,
+        "All users" => HKEY_LOCAL_MACHINE,
+        _ => bail!("Unknown registration scope"),
+    };
+    let path = format!("{UNINSTALL}\\{}", app.key_name);
+    let mut error = None;
+    for flag in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
+        match open(root, &path, flag) {
+            Ok(_) => return Ok(true),
+            Err(e)
+                if e.downcast_ref::<std::io::Error>()
+                    .is_some_and(|e| matches!(e.raw_os_error(), Some(2 | 3))) => {}
+            Err(e) => error = Some(e),
+        }
+    }
+    if let Some(error) = error {
+        return Err(error);
+    }
+    Ok(false)
+}
 
 pub fn enumerate() -> Result<Inventory> {
     let mut inventory = Inventory::default();

@@ -3,6 +3,7 @@ use crate::{
     command::{self, UninstallPlan},
     inventory::{self, InstalledApp, Inventory},
     leftovers::{self, Candidate, QuarantineRecord, SafetyPolicy, Snapshot},
+    removal::{self, Observer, Phase, Presence, Status},
     settings::{self, Settings},
     updater::{self, Update},
 };
@@ -10,6 +11,7 @@ use anyhow::{Context, Result, ensure};
 use std::{
     path::PathBuf,
     sync::mpsc::{self, Receiver, SyncSender},
+    time::Instant,
 };
 
 pub enum Work {
@@ -23,6 +25,7 @@ pub enum Work {
     CheckUpdate,
     Download(Update),
     Install(PathBuf),
+    StopWatching,
 }
 pub enum Event {
     Ready {
@@ -39,12 +42,7 @@ pub enum Event {
         snapshot: Option<Snapshot>,
         limitation: Option<String>,
     },
-    Uninstalled {
-        app_name: String,
-        code: u32,
-        snapshot: Option<Snapshot>,
-        inventory: Inventory,
-    },
+    Removal(Box<RemovalUpdate>),
     Reviewed(Option<Candidate>, Inventory),
     Quarantined(QuarantineRecord),
     Restored(String),
@@ -63,6 +61,88 @@ pub struct Worker {
 struct State {
     data: Option<PathBuf>,
     policy: SafetyPolicy,
+    watch: Option<WatchedRemoval>,
+}
+pub struct RemovalUpdate {
+    pub app: InstalledApp,
+    pub status: Status,
+    pub problem: Option<String>,
+    pub snapshot: Option<Snapshot>,
+}
+struct WatchedRemoval {
+    app: InstalledApp,
+    child: Option<std::process::Child>,
+    exit_code: Option<u32>,
+    snapshot: Option<Snapshot>,
+    launch_error: Option<String>,
+    observer: Observer,
+    started: Instant,
+    next_check: Instant,
+    last: Option<(Status, Option<String>)>,
+}
+impl WatchedRemoval {
+    fn poll(&mut self) -> Option<RemovalUpdate> {
+        let now = Instant::now();
+        if now < self.next_check {
+            return None;
+        }
+        self.next_check = now + removal::CHECK_INTERVAL;
+        if let Some(child) = &mut self.child {
+            match child.try_wait() {
+                Ok(Some(status)) => {
+                    self.exit_code = Some(status.code().unwrap_or(-1) as u32);
+                    self.child = None;
+                }
+                Ok(None) => {}
+                Err(error) => {
+                    self.launch_error = Some(format!(
+                        "Could not read the publisher process state: {error}"
+                    ));
+                    self.child = None;
+                    self.snapshot = None;
+                }
+            }
+        }
+        let (presence, problem) = match inventory::registration_exists(&self.app) {
+            Ok(true) => (Presence::Present, self.launch_error.clone()),
+            Ok(false) => (Presence::Missing, self.launch_error.clone()),
+            Err(error) => (
+                Presence::Unknown,
+                Some(format!(
+                    "Cannot verify installed-app registration: {error:#}"
+                )),
+            ),
+        };
+        let status = self.observer.observe(
+            now.duration_since(self.started),
+            presence,
+            self.child.is_some(),
+            self.exit_code,
+        );
+        if self.last.as_ref() == Some(&(status.clone(), problem.clone())) {
+            return None;
+        }
+        self.last = Some((status.clone(), problem.clone()));
+        Some(self.update(status, problem))
+    }
+    fn update(&self, status: Status, problem: Option<String>) -> RemovalUpdate {
+        let snapshot = if status.phase == Phase::Removed
+            && !status.process_running
+            && status
+                .exit_code
+                .is_some_and(|code| ![3010, 1641].contains(&code))
+        {
+            self.snapshot.clone()
+        } else {
+            None
+        };
+        RemovalUpdate {
+            app: self.app.clone(),
+            status,
+            problem,
+            snapshot,
+        }
+    }
 }
 
 impl State {
@@ -117,6 +197,7 @@ impl State {
             Self {
                 data,
                 policy: SafetyPolicy::windows(),
+                watch: None,
             },
             ready,
             startup,
@@ -132,16 +213,26 @@ impl State {
         Ok(inventory)
     }
 
-    fn perform(&self, work: Work, publish: &impl Fn(Event) -> bool) -> Result<Event> {
+    fn perform(&mut self, work: Work, publish: &impl Fn(Event) -> bool) -> Result<Event> {
+        ensure!(
+            self.watch.is_none()
+                || !matches!(
+                    &work,
+                    Work::Prepare(_)
+                        | Work::Uninstall(..)
+                        | Work::CheckUpdate
+                        | Work::Download(_)
+                        | Work::Install(_)
+                ),
+            "Finish or stop watching the current removal before starting another removal or update operation"
+        );
         Ok(match work {
             Work::Refresh => Event::Inventory(inventory::enumerate()?),
             Work::Prepare(app) => {
                 let inventory = self.complete_inventory()?;
-                let current = inventory
-                    .apps
-                    .iter()
-                    .find(|entry| entry.id == app.id)
-                    .context("Registration no longer exists. Refresh the list")?;
+                let Some(current) = inventory.apps.iter().find(|entry| entry.id == app.id) else {
+                    return Ok(self.start_watch(app, None, None, None));
+                };
                 ensure!(
                     !current.system_component,
                     "System components are inspection only"
@@ -161,11 +252,9 @@ impl State {
             }
             Work::Uninstall(app, approved, snapshot) => {
                 let inventory = self.complete_inventory()?;
-                let current = inventory
-                    .apps
-                    .iter()
-                    .find(|entry| entry.id == app.id)
-                    .context("Registration disappeared before launch")?;
+                let Some(current) = inventory.apps.iter().find(|entry| entry.id == app.id) else {
+                    return Ok(self.start_watch(*app, None, None, None));
+                };
                 let plan = command::plan(current, &command::windows_directory()?)?;
                 ensure!(
                     plan == approved
@@ -175,13 +264,28 @@ impl State {
                         && !current.system_component,
                     "Registration changed. Prepare and review it again"
                 );
-                let code = command::execute(&plan)?;
-                Event::Uninstalled {
-                    app_name: app.name,
-                    code,
-                    snapshot,
-                    inventory: inventory::enumerate()?,
+                match command::spawn(&plan) {
+                    Ok(child) => self.start_watch(*app, Some(child), None, snapshot),
+                    Err(error) => self.start_watch(
+                        *app,
+                        None,
+                        Some(format!("Nothing was launched: {error:#}")),
+                        None,
+                    ),
                 }
+            }
+            Work::StopWatching => {
+                let watch = self.watch.take().context("No removal is being observed")?;
+                let mut status = watch
+                    .last
+                    .as_ref()
+                    .map(|(status, _)| status.clone())
+                    .context("Removal has no observation")?;
+                status.monitoring = false;
+                if status.phase != Phase::Removed {
+                    status.phase = Phase::Unconfirmed;
+                }
+                Event::Removal(Box::new(watch.update(status, None)))
             }
             Work::Review(snapshot) => {
                 let inventory = self.complete_inventory()?;
@@ -231,6 +335,38 @@ impl State {
             }
         })
     }
+    fn start_watch(
+        &mut self,
+        app: InstalledApp,
+        child: Option<std::process::Child>,
+        problem: Option<String>,
+        snapshot: Option<Snapshot>,
+    ) -> Event {
+        let now = Instant::now();
+        let mut watch = WatchedRemoval {
+            app,
+            child,
+            exit_code: None,
+            snapshot,
+            launch_error: problem,
+            observer: Observer::default(),
+            started: now,
+            next_check: now,
+            last: None,
+        };
+        let update = watch
+            .poll()
+            .expect("First removal observation always publishes a status");
+        self.watch = Some(watch);
+        Event::Removal(Box::new(update))
+    }
+    fn poll_watch(&mut self) -> Option<Event> {
+        let update = self.watch.as_mut()?.poll()?;
+        if !update.status.monitoring {
+            self.watch = None;
+        }
+        Some(Event::Removal(Box::new(update)))
+    }
 }
 
 impl Worker {
@@ -249,7 +385,7 @@ impl Worker {
                 ctx.request_repaint();
                 connected
             };
-            let (state, ready, startup) = State::load();
+            let (mut state, ready, startup) = State::load();
             if !publish(ready) {
                 return;
             }
@@ -263,11 +399,30 @@ impl Worker {
                     return;
                 }
             }
-            while let Ok(work) = commands.recv() {
-                let event = state
-                    .perform(work, &publish)
-                    .unwrap_or_else(|error| Event::Error(format!("{error:#}")));
-                if !publish(event) {
+            loop {
+                let work = if state.watch.is_some() {
+                    match commands.recv_timeout(removal::CHECK_INTERVAL) {
+                        Ok(work) => Some(work),
+                        Err(mpsc::RecvTimeoutError::Timeout) => None,
+                        Err(mpsc::RecvTimeoutError::Disconnected) => break,
+                    }
+                } else {
+                    match commands.recv() {
+                        Ok(work) => Some(work),
+                        Err(_) => break,
+                    }
+                };
+                if let Some(work) = work {
+                    let event = state
+                        .perform(work, &publish)
+                        .unwrap_or_else(|error| Event::Error(format!("{error:#}")));
+                    if !publish(event) {
+                        break;
+                    }
+                }
+                if let Some(event) = state.poll_watch()
+                    && !publish(event)
+                {
                     break;
                 }
             }

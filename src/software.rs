@@ -123,11 +123,14 @@ impl Host {
         }
         self.frame_interval = monitor_interval(&window);
         window.set_visible(true);
-        let desktop = if self.fixture {
-            Desktop::preview(&self.ctx, "applications-load")?
+        let mut desktop = if self.fixture {
+            Desktop::preview(&self.ctx, "applications-removal-load")?
         } else {
             Desktop::new(&self.ctx)
         };
+        if self.fixture {
+            desktop.use_live_preview_clock();
+        }
         self.canvas = Some(Canvas {
             surface,
             _context: context,

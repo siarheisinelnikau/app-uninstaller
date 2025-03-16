@@ -5,6 +5,7 @@ pub mod command;
 pub mod design;
 pub mod inventory;
 pub mod leftovers;
+pub mod removal;
 pub mod repaint;
 pub mod settings;
 #[cfg(windows)]

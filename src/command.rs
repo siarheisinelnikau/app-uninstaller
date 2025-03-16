@@ -126,7 +126,7 @@ pub fn parse_registered(raw: &str) -> Result<UninstallPlan> {
     Ok(UninstallPlan { executable: exe.into(), arguments: args.into(), explanation: "Runs the exact registered executable with its registered arguments, without a command shell. Review the publisher and path before continuing.".into() })
 }
 
-pub fn execute(plan: &UninstallPlan) -> Result<u32> {
+pub fn spawn(plan: &UninstallPlan) -> Result<std::process::Child> {
     #[cfg(windows)]
     {
         use std::os::windows::process::CommandExt;
@@ -134,10 +134,10 @@ pub fn execute(plan: &UninstallPlan) -> Result<u32> {
             plan.executable.is_file(),
             "Registered uninstaller no longer exists"
         );
-        let status = std::process::Command::new(&plan.executable)
+        let child = std::process::Command::new(&plan.executable)
             .raw_arg(&plan.arguments)
-            .status().map_err(|e| anyhow::anyhow!("Could not run registered uninstaller: {e}. If it requires administrator permission, use Windows Installed apps; AppUninstaller does not request elevation"))?;
-        Ok(status.code().unwrap_or(-1) as u32)
+            .spawn().map_err(|e| anyhow::anyhow!("Could not run registered uninstaller: {e}. If it requires administrator permission, use Windows Installed apps; AppUninstaller does not request elevation"))?;
+        Ok(child)
     }
     #[cfg(not(windows))]
     {

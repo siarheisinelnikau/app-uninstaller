@@ -49,6 +49,18 @@ pub fn enumerate() -> anyhow::Result<Inventory> {
         anyhow::bail!("Installed application inventory requires Windows")
     }
 }
+/// Read only the selected registration in both architecture views. No icon scan.
+pub fn registration_exists(app: &InstalledApp) -> anyhow::Result<bool> {
+    #[cfg(windows)]
+    {
+        windows::registration_exists(app)
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = app;
+        anyhow::bail!("Registration observation requires Windows")
+    }
+}
 
 #[cfg(windows)]
 #[path = "windows_inventory.rs"]

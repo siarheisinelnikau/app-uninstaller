@@ -1,6 +1,6 @@
 {
   "backend": "production CPU rasterizer",
-  "elapsed_ms": 21,
+  "elapsed_ms": 22,
   "frames": 4,
   "logical_size": [
     1120,
@@ -14,5 +14,5 @@
   "scenario": "deterministic isolated fixtures; all actions disabled",
   "screen": "leftovers",
   "surface": "client area, offscreen",
-  "version": "0.1.0"
+  "version": "0.1.1"
 }

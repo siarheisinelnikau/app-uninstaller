@@ -18,6 +18,7 @@ pub enum Work {
     Refresh,
     Prepare(InstalledApp),
     Uninstall(Box<InstalledApp>, UninstallPlan, Option<Snapshot>),
+    RetryAsAdministrator(String),
     Review(Snapshot),
     Quarantine(Candidate),
     Restore(QuarantineRecord),
@@ -68,13 +69,24 @@ pub struct RemovalUpdate {
     pub status: Status,
     pub problem: Option<String>,
     pub snapshot: Option<Snapshot>,
+    pub elevation: Option<ElevationOffer>,
+}
+#[derive(Clone)]
+pub struct ElevationOffer {
+    pub plan: UninstallPlan,
+    pub cancelled: bool,
+}
+struct PendingElevation {
+    offer: ElevationOffer,
+    snapshot: Option<Snapshot>,
 }
 struct WatchedRemoval {
     app: InstalledApp,
-    child: Option<std::process::Child>,
+    child: Option<command::RunningUninstaller>,
     exit_code: Option<u32>,
     snapshot: Option<Snapshot>,
     launch_error: Option<String>,
+    elevation: Option<PendingElevation>,
     observer: Observer,
     started: Instant,
     next_check: Instant,
@@ -89,8 +101,8 @@ impl WatchedRemoval {
         self.next_check = now + removal::CHECK_INTERVAL;
         if let Some(child) = &mut self.child {
             match child.try_wait() {
-                Ok(Some(status)) => {
-                    self.exit_code = Some(status.code().unwrap_or(-1) as u32);
+                Ok(Some(code)) => {
+                    self.exit_code = Some(code);
                     self.child = None;
                 }
                 Ok(None) => {}
@@ -138,6 +150,14 @@ impl WatchedRemoval {
         };
         RemovalUpdate {
             app: self.app.clone(),
+            elevation: if status.monitoring
+                && status.phase != Phase::Removed
+                && self.child.is_none()
+            {
+                self.elevation.as_ref().map(|pending| pending.offer.clone())
+            } else {
+                None
+            },
             status,
             problem,
             snapshot,
@@ -231,7 +251,7 @@ impl State {
             Work::Prepare(app) => {
                 let inventory = self.complete_inventory()?;
                 let Some(current) = inventory.apps.iter().find(|entry| entry.id == app.id) else {
-                    return Ok(self.start_watch(app, None, None, None));
+                    return Ok(self.start_watch(app, None, None, None, None));
                 };
                 ensure!(
                     !current.system_component,
@@ -253,27 +273,44 @@ impl State {
             Work::Uninstall(app, approved, snapshot) => {
                 let inventory = self.complete_inventory()?;
                 let Some(current) = inventory.apps.iter().find(|entry| entry.id == app.id) else {
-                    return Ok(self.start_watch(*app, None, None, None));
+                    return Ok(self.start_watch(*app, None, None, None, None));
                 };
-                let plan = command::plan(current, &command::windows_directory()?)?;
-                ensure!(
-                    plan == approved
-                        && current.install_location == app.install_location
-                        && current.name == app.name
-                        && current.publisher == app.publisher
-                        && !current.system_component,
-                    "Registration changed. Prepare and review it again"
-                );
+                let plan = command::validate_approved(
+                    current,
+                    &app,
+                    &approved,
+                    &command::windows_directory()?,
+                )?;
                 match command::spawn(&plan) {
-                    Ok(child) => self.start_watch(*app, Some(child), None, snapshot),
+                    Ok(child) => self.start_watch(*app, Some(child), None, snapshot, None),
+                    Err(error)
+                        if command::launch_error_kind(&error)
+                            == command::LaunchErrorKind::ElevationRequired =>
+                    {
+                        self.start_watch(
+                            *app,
+                            None,
+                            None,
+                            None,
+                            Some(PendingElevation {
+                                offer: ElevationOffer {
+                                    plan,
+                                    cancelled: false,
+                                },
+                                snapshot,
+                            }),
+                        )
+                    }
                     Err(error) => self.start_watch(
                         *app,
                         None,
                         Some(format!("Nothing was launched: {error:#}")),
                         None,
+                        None,
                     ),
                 }
             }
+            Work::RetryAsAdministrator(id) => self.retry_elevated(&id)?,
             Work::StopWatching => {
                 let watch = self.watch.take().context("No removal is being observed")?;
                 let mut status = watch
@@ -338,9 +375,10 @@ impl State {
     fn start_watch(
         &mut self,
         app: InstalledApp,
-        child: Option<std::process::Child>,
+        child: Option<command::RunningUninstaller>,
         problem: Option<String>,
         snapshot: Option<Snapshot>,
+        elevation: Option<PendingElevation>,
     ) -> Event {
         let now = Instant::now();
         let mut watch = WatchedRemoval {
@@ -349,6 +387,7 @@ impl State {
             exit_code: None,
             snapshot,
             launch_error: problem,
+            elevation,
             observer: Observer::default(),
             started: now,
             next_check: now,
@@ -359,6 +398,65 @@ impl State {
             .expect("First removal observation always publishes a status");
         self.watch = Some(watch);
         Event::Removal(Box::new(update))
+    }
+    fn retry_elevated(&mut self, id: &str) -> Result<Event> {
+        let watch = self.watch.as_ref().context(
+            "Review the uninstall command again before requesting administrator permission",
+        )?;
+        ensure!(
+            watch.app.id == id && watch.child.is_none() && watch.elevation.is_some(),
+            "This removal has no pending administrator retry"
+        );
+        ensure!(
+            !watch
+                .last
+                .as_ref()
+                .is_some_and(|(status, _)| status.phase == Phase::Removed),
+            "The app is already removed"
+        );
+        let mut watch = self.watch.take().expect("Pending watch was checked");
+        let mut pending = watch
+            .elevation
+            .take()
+            .expect("Pending elevation was checked");
+        // The approved command is worker-owned. Never accept an arbitrary executable
+        // from the retry button, and never launch after a changed registration.
+        let launch = (|| -> Result<Option<command::RunningUninstaller>> {
+            let inventory = self.complete_inventory()?;
+            let Some(current) = inventory.apps.iter().find(|entry| entry.id == id) else {
+                return Ok(None);
+            };
+            let fresh = command::validate_approved(
+                current,
+                &watch.app,
+                &pending.offer.plan,
+                &command::windows_directory()?,
+            )?;
+            command::spawn_elevated(&fresh)
+        })();
+        Ok(match launch {
+            Ok(child) => {
+                let snapshot = if child.is_some() {
+                    pending.snapshot
+                } else {
+                    None
+                };
+                self.start_watch(watch.app, child, None, snapshot, None)
+            }
+            Err(error)
+                if command::launch_error_kind(&error) == command::LaunchErrorKind::Cancelled =>
+            {
+                pending.offer.cancelled = true;
+                self.start_watch(watch.app, None, None, None, Some(pending))
+            }
+            Err(error) => self.start_watch(
+                watch.app,
+                None,
+                Some(format!("Administrator launch did not complete: {error:#}")),
+                None,
+                None,
+            ),
+        })
     }
     fn poll_watch(&mut self) -> Option<Event> {
         let update = self.watch.as_mut()?.poll()?;
@@ -437,5 +535,65 @@ impl Worker {
         self.tx
             .try_send(work)
             .map_err(|_| "The worker is busy. Wait for the current operation".into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn pending_watch() -> WatchedRemoval {
+        let now = Instant::now();
+        WatchedRemoval {
+            app: InstalledApp {
+                id: "fixture".into(),
+                ..Default::default()
+            },
+            child: None,
+            exit_code: None,
+            snapshot: None,
+            launch_error: None,
+            elevation: Some(PendingElevation {
+                offer: ElevationOffer {
+                    plan: command::parse_registered(r#""C:\Fixture\remove.exe" /uninstall"#)
+                        .unwrap(),
+                    cancelled: true,
+                },
+                snapshot: None,
+            }),
+            observer: Observer::default(),
+            started: now,
+            next_check: now,
+            last: None,
+        }
+    }
+    #[test]
+    fn canceled_uac_keeps_retry_but_removal_and_stop_withdraw_it() {
+        let watch = pending_watch();
+        let mut status = Status {
+            phase: Phase::Waiting,
+            process_running: false,
+            exit_code: None,
+            monitoring: true,
+        };
+        let update = watch.update(status.clone(), None);
+        assert!(update.elevation.unwrap().cancelled);
+        assert!(update.snapshot.is_none());
+        status.phase = Phase::Removed;
+        assert!(watch.update(status.clone(), None).elevation.is_none());
+        status.phase = Phase::Unconfirmed;
+        status.monitoring = false;
+        assert!(watch.update(status, None).elevation.is_none());
+    }
+    #[test]
+    fn stale_or_unoffered_administrator_retry_is_rejected_before_any_launch() {
+        let mut state = State {
+            data: None,
+            policy: SafetyPolicy::windows(),
+            watch: Some(pending_watch()),
+        };
+        assert!(state.retry_elevated("different-app").is_err());
+        state.watch.as_mut().unwrap().elevation = None;
+        assert!(state.retry_elevated("fixture").is_err());
+        assert!(state.watch.is_some());
     }
 }

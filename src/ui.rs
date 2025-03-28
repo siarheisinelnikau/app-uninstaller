@@ -6,7 +6,7 @@ use crate::{
     removal::{self, Phase, Status},
     settings::Settings,
     updater::Update,
-    worker::{Event, Work, Worker},
+    worker::{ElevationOffer, Event, Work, Worker},
 };
 use egui::{self, Color32, RichText};
 use std::{
@@ -38,6 +38,7 @@ struct Confirmation {
 struct RemovalView {
     app_id: String,
     status: Status,
+    elevation: Option<ElevationOffer>,
 }
 pub struct Desktop {
     worker: Option<Worker>,
@@ -82,6 +83,8 @@ impl Desktop {
             "applications"
             | "applications-load"
             | "applications-unavailable"
+            | "applications-administrator"
+            | "applications-uac-cancelled"
             | "applications-removing"
             | "applications-removed"
             | "applications-collapsing"
@@ -136,6 +139,8 @@ impl Desktop {
         if matches!(
             screen,
             "applications-unavailable"
+                | "applications-administrator"
+                | "applications-uac-cancelled"
                 | "applications-removing"
                 | "applications-removed"
                 | "applications-collapsing"
@@ -143,7 +148,11 @@ impl Desktop {
         ) {
             let now = Instant::now();
             app.preview_now = Some(now);
-            let phase = if screen == "applications-unavailable" {
+            let needs_administrator = matches!(
+                screen,
+                "applications-administrator" | "applications-uac-cancelled"
+            );
+            let phase = if screen == "applications-unavailable" || needs_administrator {
                 Phase::Waiting
             } else if screen == "applications-removing" {
                 Phase::Running
@@ -168,6 +177,14 @@ impl Desktop {
                     None
                 },
                 snapshot: None,
+                elevation: if needs_administrator {
+                    Some(ElevationOffer {
+                        plan: crate::command::plan(&app.apps[0], r"C:\Windows")?,
+                        cancelled: screen == "applications-uac-cancelled",
+                    })
+                } else {
+                    None
+                },
             };
             app.apply_removal(update, now);
             let age = match screen {
@@ -271,6 +288,7 @@ impl Desktop {
             status,
             problem,
             snapshot,
+            elevation,
         } = update;
         let removed = status.phase == Phase::Removed;
         let new_session = self
@@ -306,6 +324,14 @@ impl Desktop {
             self.snapshot = None;
         }
         self.message = match status.phase {
+            Phase::Waiting if elevation.as_ref().is_some_and(|offer| offer.cancelled) => format!(
+                "{}: administrator request canceled. Nothing was launched.",
+                app.name
+            ),
+            Phase::Waiting if elevation.is_some() => format!(
+                "{}: administrator permission is needed. Nothing was launched.",
+                app.name
+            ),
             Phase::Running => format!(
                 "{}: publisher uninstaller is running. Status is checked automatically.",
                 app.name
@@ -327,7 +353,7 @@ impl Desktop {
                 app.name
             ),
             Phase::Unconfirmed => format!(
-                "{}: observation stopped without confirmed removal. Refresh or use Windows Installed apps.",
+                "{}: observation stopped without confirmed removal. Review the registered action again or refresh.",
                 app.name
             ),
             Phase::Removed if status.process_running => format!(
@@ -352,6 +378,7 @@ impl Desktop {
         self.removal_view = Some(RemovalView {
             app_id: app.id,
             status,
+            elevation,
         });
     }
     fn update_removed_rows(&mut self, ctx: &egui::Context) {
@@ -739,6 +766,8 @@ impl Desktop {
                                 if ui.add(egui::Button::new(title).frame(false).truncate()).clicked(){self.selected=Some(app.id.clone());}
                                 let label=if let Some(progress)=progress {
                                     if progress.seconds_left>0 {format!("Removed · leaves this list in {}s",progress.seconds_left)}else{"Removed".into()}
+                                }else if let Some(view)=&self.removal_view && view.app_id==app.id && view.elevation.is_some() {
+                                    if view.elevation.as_ref().is_some_and(|offer|offer.cancelled){"Administrator request canceled".into()}else{"Administrator permission needed".into()}
                                 }else if let Some(view)=&self.removal_view && view.app_id==app.id {
                                     match view.status.phase {Phase::Running=>"Uninstalling…".into(),Phase::Waiting=>"Checking Windows registration…".into(),Phase::VerificationUnavailable=>"Removal cannot be verified".into(),Phase::Unconfirmed=>"Removal not confirmed".into(),Phase::Removed=>"Removed".into()}
                                 }else{format!("{} · {}",if app.publisher.is_empty(){"Unknown publisher"}else{&app.publisher},size(app.estimated_kib.map(|n|n*1024)))};
@@ -757,7 +786,14 @@ impl Desktop {
                         ui.heading(&app.name);
                         ui.label(RichText::new(if app.publisher.is_empty(){"Publisher not supplied"}else{&app.publisher}).color(MUTED));
                         ui.add_space(8.);
-                        if let Some(at)=self.removed_rows.get(&app.id) {
+                        let elevation=self.removal_view.as_ref().filter(|view|view.app_id==app.id).and_then(|view|view.elevation.clone());
+                        if let Some(offer)=&elevation {
+                            ui.label(RichText::new(if offer.cancelled{"Administrator request canceled"}else{"Administrator permission needed"}).color(ACCENT).strong());
+                            ui.label(RichText::new("Run the reviewed uninstaller with administrator permission. Windows will ask for approval; AppUninstaller keeps its current permissions.").small().color(MUTED));
+                            ui.horizontal(|ui| {
+                                if ui.add_enabled(!self.busy,egui::Button::new(RichText::new("Run as administrator…").color(Color32::WHITE)).fill(ACCENT)).clicked(){self.send(Work::RetryAsAdministrator(app.id.clone()),"Requesting administrator permission in Windows…");}
+                            });
+                        }else if let Some(at)=self.removed_rows.get(&app.id) {
                             let progress=removal::row_progress(self.preview_now.unwrap_or_else(Instant::now).saturating_duration_since(*at));
                             let label=if progress.seconds_left>0 {format!("Removed from installed apps · leaves this list in {}s",progress.seconds_left)}else{"Removed from installed apps".into()};
                             ui.label(RichText::new(label).color(ACCENT).strong());
@@ -785,14 +821,15 @@ impl Desktop {
                                 ui.add(egui::Label::new(if value.is_empty(){"Not supplied"}else{&value}).halign(egui::Align::Min).wrap());ui.end_row();
                             }
                         });
-                        ui.add_space(16.);ui.strong("Registered uninstall command");
+                        ui.add_space(16.);ui.strong(if elevation.is_some(){"Reviewed uninstall command"}else{"Registered uninstall command"});
                         egui::Frame::new().fill(BACKGROUND).inner_margin(10.).show(ui,|ui| {
-                            ui.add(egui::Label::new(RichText::new(if app.uninstall_string.is_empty(){"Not supplied"}else{&app.uninstall_string}).monospace()).halign(egui::Align::Min).selectable(true).wrap());
+                            let command=elevation.as_ref().map(|offer|format!("\"{}\" {}",offer.plan.executable.display(),offer.plan.arguments));
+                            ui.add(egui::Label::new(RichText::new(command.as_deref().unwrap_or(if app.uninstall_string.is_empty(){"Not supplied"}else{&app.uninstall_string})).monospace()).halign(egui::Align::Min).selectable(true).wrap());
                         });
                         ui.add_space(10.);
                         ui.collapsing("How removal and recovery work",|ui| {
                             ui.label("After uninstalling, review proven leftovers and choose whether to quarantine them. Quarantine is reversible; the publisher’s uninstall is not.");
-                            ui.small("Uncertain ownership and unsupported command formats are refused. Administrator-only uninstallers may need Windows Installed apps. No automatic elevation or registry cleaning.");
+                            ui.small("Uncertain ownership and unsupported command formats are refused. If the uninstaller requires administrator permission, an explicit retry opens Windows UAC. No automatic elevation or registry cleaning.");
                         });
                     } else {
                         ui.heading("Select an application");
@@ -1120,6 +1157,15 @@ impl Desktop {
                     ui.spinner();
                 }
                 ui.label(&self.message);
+                if self.removal_view.as_ref().is_some_and(|view| {
+                    view.elevation.is_some()
+                        && (self.page != Page::Applications
+                            || self.selected.as_ref() != Some(&view.app_id))
+                }) && ui.small_button("Review administrator request").clicked()
+                {
+                    self.selected = self.removal_view.as_ref().map(|view| view.app_id.clone());
+                    self.page = Page::Applications;
+                }
                 if self
                     .removal_view
                     .as_ref()
@@ -1199,6 +1245,32 @@ mod tests {
         assert!(app.error.is_some());
     }
     #[test]
+    fn uac_cancellation_is_not_removal_and_successful_launch_clears_the_offer() {
+        let ctx = egui::Context::default();
+        let mut ui = Desktop::preview(&ctx, "applications-uac-cancelled").unwrap();
+        assert!(ui.message.contains("canceled"));
+        assert!(!ui.message.contains("uninstaller is running"));
+        assert!(ui.error.is_none() && ui.snapshot.is_none() && ui.removed_rows.is_empty());
+        assert!(ui.removal_view.as_ref().unwrap().elevation.is_some());
+        ui.apply_removal(
+            crate::worker::RemovalUpdate {
+                app: ui.apps[0].clone(),
+                status: Status {
+                    phase: Phase::Running,
+                    process_running: true,
+                    exit_code: None,
+                    monitoring: true,
+                },
+                problem: None,
+                snapshot: None,
+                elevation: None,
+            },
+            Instant::now(),
+        );
+        assert!(ui.removal_view.as_ref().unwrap().elevation.is_none());
+        assert!(ui.message.contains("uninstaller is running"));
+    }
+    #[test]
     fn removed_row_expires_once_and_later_monitor_completion_does_not_resurrect_it() {
         let ctx = egui::Context::default();
         let mut ui = Desktop::preview(&ctx, "applications-removed").unwrap();
@@ -1220,6 +1292,7 @@ mod tests {
                 },
                 problem: None,
                 snapshot: None,
+                elevation: None,
             },
             now,
         );
@@ -1235,6 +1308,7 @@ mod tests {
                 },
                 problem: None,
                 snapshot: None,
+                elevation: None,
             },
             now,
         );

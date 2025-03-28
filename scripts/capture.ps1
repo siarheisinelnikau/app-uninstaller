@@ -10,7 +10,7 @@ try {
     if (-not (Test-Path -LiteralPath $exe)) { throw 'Package the application before capture' }
     New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
     $output = (Resolve-Path -LiteralPath $OutputDirectory).Path
-    foreach ($screen in @('applications', 'settings', 'leftovers', 'applications-unavailable', 'applications-removing', 'applications-removed', 'applications-collapsing')) {
+    foreach ($screen in @('applications', 'settings', 'leftovers', 'applications-unavailable', 'applications-removing', 'applications-removed', 'applications-collapsing', 'applications-administrator', 'applications-uac-cancelled')) {
         $path = Join-Path $output "$screen.png"
         $process = Start-Process -FilePath $exe -ArgumentList @('--screenshot', $path, '--screen', $screen) -WindowStyle Hidden -PassThru
         if (-not $process.WaitForExit(20000)) {

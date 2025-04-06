@@ -1,12 +1,12 @@
 {
-  "file": "AppUninstaller-v0.1.1.exe",
-  "bytes": 9662976,
-  "sha256": "dc1fab917dcf60276dce0a0bf710a8280825fd35ae358407009101decdea59fe",
+  "file": "AppUninstaller-v0.1.2.exe",
+  "bytes": 9681408,
+  "sha256": "84c3b22907ce608c8dd5c94231fade9e371cbe531e25cf5b03186426d3b3025a",
   "architecture": "x86_64",
   "subsystem": "Windows GUI",
   "imports": [
-    "ADVAPI32.dll",
     "advapi32.dll",
+    "ADVAPI32.dll",
     "api-ms-win-core-synch-l1-2-0.dll",
     "bcrypt.dll",
     "bcryptprimitives.dll",

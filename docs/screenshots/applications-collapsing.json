@@ -14,5 +14,5 @@
   "scenario": "deterministic isolated fixtures; all actions disabled",
   "screen": "applications-collapsing",
   "surface": "client area, offscreen",
-  "version": "0.1.1"
+  "version": "0.1.2"
 }

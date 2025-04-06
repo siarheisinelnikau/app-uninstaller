@@ -1,39 +1,39 @@
 {
   "backend": "CPU / Win32 GDI",
   "cache_presentations": 1,
-  "event_loop_wakeups": 248,
-  "executable": "E:\\work\\github\\app-uninstaller\\dist\\AppUninstaller-v0.1.1.exe",
+  "event_loop_wakeups": 252,
+  "executable": "E:\\work\\github\\app-uninstaller\\dist\\AppUninstaller-v0.1.2.exe",
   "fixture": true,
   "input_events": 0,
-  "max_draw_ms": 9.961,
-  "pid": 32720,
-  "presentations": 77,
-  "rasterizations": 76,
+  "max_draw_ms": 7.79,
+  "pid": 29988,
+  "presentations": 79,
+  "rasterizations": 78,
   "release_build": true,
-  "repaint_events": 82,
+  "repaint_events": 83,
   "samples": [
     {
-      "elapsed_seconds": 1.0001936,
-      "machine_percent": 0.23433122692681008,
-      "one_core_percent": 4.6866245385362015,
+      "elapsed_seconds": 1.0002056,
+      "machine_percent": 0.23433673281153186,
+      "one_core_percent": 4.686734656230637,
       "phase": 0,
-      "presentations": 18,
-      "rasterizations": 18,
+      "presentations": 19,
+      "rasterizations": 19,
       "ui_passes": 20,
       "visible": true
     },
     {
-      "elapsed_seconds": 2.000918,
-      "machine_percent": 0.9368231452775371,
-      "one_core_percent": 18.73646290555074,
+      "elapsed_seconds": 2.0008499,
+      "machine_percent": 0.6245757257095255,
+      "one_core_percent": 12.49151451419051,
       "phase": 0,
-      "presentations": 58,
-      "rasterizations": 58,
-      "ui_passes": 62,
+      "presentations": 59,
+      "rasterizations": 59,
+      "ui_passes": 63,
       "visible": true
     },
     {
-      "elapsed_seconds": 3.00165,
+      "elapsed_seconds": 3.0017123,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 0,
@@ -43,7 +43,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 4.0024409,
+      "elapsed_seconds": 4.002215,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 0,
@@ -53,7 +53,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 5.0030479,
+      "elapsed_seconds": 5.0027517,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 0,
@@ -63,7 +63,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 6.003731,
+      "elapsed_seconds": 6.0033698,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 0,
@@ -73,7 +73,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 7.004334,
+      "elapsed_seconds": 7.0041897,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 0,
@@ -83,7 +83,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 8.0051745,
+      "elapsed_seconds": 8.0051962,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 1,
@@ -93,7 +93,7 @@
       "visible": false
     },
     {
-      "elapsed_seconds": 9.0060276,
+      "elapsed_seconds": 9.0065412,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 1,
@@ -103,7 +103,7 @@
       "visible": false
     },
     {
-      "elapsed_seconds": 10.0063971,
+      "elapsed_seconds": 10.0077938,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 1,
@@ -113,7 +113,7 @@
       "visible": false
     },
     {
-      "elapsed_seconds": 11.0070545,
+      "elapsed_seconds": 11.0083645,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 1,
@@ -123,7 +123,7 @@
       "visible": false
     },
     {
-      "elapsed_seconds": 12.007785,
+      "elapsed_seconds": 12.0091689,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 1,
@@ -133,9 +133,9 @@
       "visible": false
     },
     {
-      "elapsed_seconds": 13.0082988,
-      "machine_percent": 0.07808486437970884,
-      "one_core_percent": 1.5616972875941768,
+      "elapsed_seconds": 13.0096469,
+      "machine_percent": 0.07808783019282822,
+      "one_core_percent": 1.5617566038565645,
       "phase": 2,
       "presentations": 1,
       "rasterizations": 0,
@@ -143,7 +143,17 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 14.0088127,
+      "elapsed_seconds": 14.010439,
+      "machine_percent": 0.07806297116311378,
+      "one_core_percent": 1.5612594232622756,
+      "phase": 2,
+      "presentations": 0,
+      "rasterizations": 0,
+      "ui_passes": 0,
+      "visible": true
+    },
+    {
+      "elapsed_seconds": 15.010944,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 2,
@@ -153,17 +163,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 15.0094492,
-      "machine_percent": 0.07807535968631144,
-      "one_core_percent": 1.5615071937262288,
-      "phase": 2,
-      "presentations": 0,
-      "rasterizations": 0,
-      "ui_passes": 0,
-      "visible": true
-    },
-    {
-      "elapsed_seconds": 16.0102122,
+      "elapsed_seconds": 16.0114211,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 2,
@@ -173,7 +173,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 17.0109383,
+      "elapsed_seconds": 17.0118968,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 2,
@@ -183,7 +183,7 @@
       "visible": true
     },
     {
-      "elapsed_seconds": 18.0114006,
+      "elapsed_seconds": 18.0127016,
       "machine_percent": 0.0,
       "one_core_percent": 0.0,
       "phase": 2,
@@ -193,8 +193,8 @@
       "visible": true
     }
   ],
-  "ui_passes": 83,
-  "unchanged_scenes": 7,
+  "ui_passes": 84,
+  "unchanged_scenes": 6,
   "loaded_graphics_api_modules": [],
-  "binary_sha256": "dc1fab917dcf60276dce0a0bf710a8280825fd35ae358407009101decdea59fe"
+  "binary_sha256": "84c3b22907ce608c8dd5c94231fade9e371cbe531e25cf5b03186426d3b3025a"
 }

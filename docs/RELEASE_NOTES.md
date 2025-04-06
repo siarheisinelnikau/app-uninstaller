@@ -2,6 +2,20 @@
 
 These versions are local and unpublished. There is no preceding published release or verified remote comparison baseline.
 
+## 0.1.2 — explicit administrator retry
+
+Changes since the local 0.1.1 implementation (`d834937`). Windows x64 portable package: `AppUninstaller-v0.1.2.exe`.
+
+### Added
+
+- Handle Windows error 740 with **Run as administrator…** for the reviewed uninstaller. Only a separate user action requests UAC; AppUninstaller keeps its permissions and session.
+- Revalidate the registration and approved command before requesting elevation. A changed registration refuses launch; one already removed is observed without a redundant launch.
+- Show a clear canceled state when UAC is dismissed and allow another explicit retry. Track an elevated process through its native handle while retaining automatic registration observation and the removal countdown.
+
+### Verification and limits
+
+Formatting, Clippy and 35 tests passed, including OS error classification, stale approval refusal, canceled-state handling and a read-only native handle check on the test process itself. Actual UAC approval and an elevated publisher uninstaller were not executed. Application-generated fixture screenshots cover permission-required and canceled states; see [verification](VERIFICATION.md) for current rendering evidence and deferred interactive checks.
+
 ## 0.1.1 — removal status and list lifecycle
 
 Changes since the local 0.1.0 implementation (`c46a30a`). Windows x64 portable package: `AppUninstaller-v0.1.1.exe`.
@@ -41,6 +55,6 @@ Formatting, Clippy and 29 fixture tests passed. Real application-generated scree
 
 ## Requirements and current limits
 
-Windows x64; the application uses CPU rendering with Win32 GDI, with no OpenGL/DirectX context. Administrator-only uninstallers may require Windows Installed apps; AppUninstaller does not request elevation. Leftover suggestions deliberately exclude uncertain ownership, shared/system/document locations, custom/vendor-nested installation folders and registry values. Quarantine preserves disk usage and does not undo the publisher's uninstall.
+Windows x64; the application uses CPU rendering with Win32 GDI, with no OpenGL/DirectX context. Administrator retry requests UAC only for a previously reviewed uninstaller; AppUninstaller and quarantine keep their current permissions. Leftover suggestions deliberately exclude uncertain ownership, shared/system/document locations, custom/vendor-nested installation folders and registry values. Quarantine preserves disk usage and does not undo the publisher's uninstall.
 
 Complete the deferred manual checks before public distribution. No release has been created or uploaded.

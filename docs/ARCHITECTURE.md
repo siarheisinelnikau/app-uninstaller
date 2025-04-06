@@ -7,7 +7,7 @@ The application is a Windows-first Rust binary. `main.rs` dispatches the desktop
 | Module | Responsibility | Effects |
 | --- | --- | --- |
 | `inventory.rs` / `windows_inventory.rs` | Installed application models; typed, bounded HKCU/HKLM and WOW64 reads; local icon extraction | Read-only registry/files and GDI icon extraction |
-| `command.rs` | Validated pure uninstall planning, MSI product-code parsing; isolated process execution | Process creation only in `spawn`; returns a child handle without waiting |
+| `command.rs` | Validated uninstall planning/revalidation, typed launch errors, process observation and explicit UAC launch | Creation only in `spawn` / `spawn_elevated`; owned process handle without waiting for exit |
 | `removal.rs` | Registration observation state, confirmation thresholds, bounded deadlines and finite row progress | Pure model; injected time and observations |
 | `leftovers.rs` | Ownership capture, bounded manifest/SHA-256, post-uninstall review, quarantine/recovery | Read-only discovery separated from explicit rename/journal operations |
 | `settings.rs` | Startup update preference, per-user data location | Small JSON read; atomic replacement on save |
@@ -17,7 +17,7 @@ The application is a Windows-first Rust binary. `main.rs` dispatches the desktop
 | `software.rs` / `repaint.rs` | Reactive winit host, CPU rasterizer, retained bitmap, Win32 GDI and scheduling | Native window/presentation; optional bounded diagnostic counters |
 | `capture.rs` | Actual production UI rendered offscreen with isolated fixtures | Writes a selected client-area PNG and metadata, then exits |
 
-The worker sleeps on channel receive when idle. During one active removal it uses a one-second receive timeout, `Child::try_wait` and a read-only probe of the exact registration in both registry views. No inventory/icon rescan runs on that timer. Only changed status or errors publish an event and wake egui. Long update operations and additional removals are disabled during observation.
+The worker sleeps on channel receive when idle. During one active removal it uses a one-second receive timeout, nonblocking `RunningUninstaller::try_wait` and a read-only probe of the exact registration in both registry views. No inventory/icon rescan runs on that timer. Only changed status or errors publish an event and wake egui. Long update operations and additional removals are disabled during observation.
 
 The UI uses filtered/sorted index snapshots and virtual rows for the installed-app list. A viewport layout reserves each row's current height but only constructs visible row widgets, allowing one removed row and its gap to collapse without rebuilding hundreds of widgets. It does not scan the registry/filesystem, hash files, wait for uninstallers, or perform network work in a frame callback. Snapshots are cloned only when submitting work or publishing a changed result. Busy spinners repaint during pending work; the idle app does not request continuous redraws. A bounded isolated runtime gate measured zero settled UI/raster/presentation work in visible, hidden and restored states after a live fixture transition. Hands-on responsiveness, native scaling and broader platform compatibility remain separate checks.
 
@@ -28,6 +28,14 @@ The observer requires two consecutive absent registration probes before reportin
 The row is marked removed immediately after confirmation, held for ten seconds with one-second label updates, then faded/clipped and collapsed over 260 ms. Only that finite transition requests animation frames. Expired rows are removed from the inventory; their session timestamps prevent a later completion event from resurrecting them. Full Refresh preserves a pending grace row but cancels it if the registration is present again. Hidden windows consume changed worker state without rendering; elapsed row transitions finish on the next visible update.
 
 Observation ends after a confirmed registration has been absent for at least 12 seconds and the launched process has stopped, after two minutes following an unconfirmed exit/failed launch, or at the 30-minute absolute deadline. `Stop watching` ends observation without killing a process. Dropping a child handle never terminates the uninstaller. This tracks one selected removal, including a detached launcher's registration changes, rather than every application on the system.
+
+## Administrator retry
+
+Normal launch preserves the original `io::Error` through context. Only OS error 740 creates a worker-owned pending administrator offer; access denied, missing files and text containing “740” do not. The offer retains the approved app identity, plan and captured evidence. Its explicit retry command carries only the selected app ID, never an executable supplied by the UI.
+
+Before requesting UAC, a fresh complete inventory must still match the reviewed command, installation location, name, publisher and inspection-only status. If the registration is already gone, observation continues without launching anything. Changed or unreadable registrations refuse the retry. `ShellExecuteExW` receives a direct executable and separate arguments with the `runas` verb, `SEE_MASK_NOCLOSEPROCESS`, `SEE_MASK_NOASYNC` and `SEE_MASK_FLAG_NO_UI`. COM is initialized/uninitialized on the worker; the UI thread does not wait on the Windows prompt. There is no command interpreter, application relaunch, manifest elevation or privileged cleanup helper.
+
+Standard and elevated launches both use an owned Windows process handle. `WaitForSingleObject(..., 0)` distinguishes a running process from a completed one before reading its exit code. Handles are closed without termination. A successful Shell launch may return no handle: registration observation still works, but leftover evidence is not exposed without a known process exit. OS error 1223 produces a non-error canceled state with another explicit retry; it never starts a second process automatically. Confirmation of removal, stopping observation or its deadline withdraws the offer.
 
 ## Ownership and quarantine
 
@@ -51,6 +59,8 @@ Staged reports/backups are retained and surfaced on next launch. Signed binaries
 
 - [Microsoft uninstall registry properties](https://learn.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key)
 - [Rust Windows command argument handling](https://doc.rust-lang.org/std/os/windows/process/trait.CommandExt.html#tymethod.raw_arg)
+- [Microsoft ShellExecuteExW](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecuteexw)
+- [Microsoft SHELLEXECUTEINFOW flags, runas and process handle](https://learn.microsoft.com/en-us/windows/win32/api/shellapi/ns-shellapi-shellexecuteinfow)
 
 The application title/window mark and UI arrangement are original code. Publisher icons are read from each installed application's registration, when available; no competitor assets are bundled.
 

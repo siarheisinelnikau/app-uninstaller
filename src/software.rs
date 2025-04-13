@@ -99,9 +99,12 @@ impl Host {
                     .with_active(!self.fixture)
                     .with_inner_size(LogicalSize::new(1120., 760.))
                     .with_min_inner_size(LogicalSize::new(900., 620.))
-                    .with_window_icon(Some(icon)),
+                    .with_window_icon(Some(icon.clone())),
             )?,
         );
+        // winit's generic window icon sets ICON_SMALL; set ICON_BIG for taskbar/Alt-Tab.
+        use winit::platform::windows::WindowExtWindows;
+        window.set_taskbar_icon(Some(icon));
         let context = softbuffer::Context::new(event_loop.owned_display_handle())
             .map_err(|error| anyhow::anyhow!(error.to_string()))?;
         let surface = softbuffer::Surface::new(&context, window.clone())
@@ -145,6 +148,9 @@ impl Host {
             occluded: false,
             needs_exposure: true,
         });
+        if !self.fixture {
+            crate::updater::cleanup_pending();
+        }
         self.repaint.invalidate();
         Ok(())
     }

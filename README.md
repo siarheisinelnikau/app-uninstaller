@@ -12,18 +12,20 @@ A Windows desktop application for reviewing installed programs, running their re
 - Automatic observation of the selected removal. Two consecutive checks must find its Windows registration absent before the row is marked removed. It stays visible with a 10-second countdown, then fades and collapses in 260 ms. A missing uninstaller or process exit alone never counts as removal.
 - Bounded ownership evidence captured before removal. After the registration disappears, review only unchanged items in the exact registered installation folder. Every suggested path has an explanation and file SHA-256; nothing is selected by default.
 - Reversible quarantine by same-volume folder rename, with a flushed JSON recovery journal written first. Restore refuses to overwrite an existing original folder or restore changed quarantine contents. Quarantine retains the same disk usage; permanent deletion remains manual.
-- Settings with installed version, **Check for updates**, persistent **Check for updates on startup** (enabled by default), release notes, progress and user-initiated **Download and install**. A separate confirmation restarts into the verified update. A helper copy of the existing EXE replaces the file after exit, retains `previous.exe`, and rolls back failed replacement/restart attempts.
+- Settings with installed version, **Check for updates**, persistent **Check for updates on startup** (enabled by default), release notes, progress and user-initiated **Download and install**. A separate confirmation restarts into the verified update. The verified new EXE acts as a helper after exit, retains `previous.exe` during replacement, and rolls back failed replacement/restart attempts.
 - One bounded background worker for registry, filesystem, process and network work; a virtualized inventory and reactive egui desktop UI. Only an active removal session checks its exact registration once per second; it does not rescan the inventory or reload icons. Unchanged observations do not repaint. Unchanged scenes skip rasterization; native exposure can reuse the retained bitmap. Ordinary settled hidden windows do not build or draw the UI.
 
 ## Build and review
 
-Requires a Windows x64 Rust MSVC toolchain (Rust 1.92 or later; verified with 1.96.1), the MSVC linker and Windows SDK. The UI uses egui 0.33.3 with CPU rasterization and Win32 GDI presentation. The application creates no OpenGL, DirectX or Vulkan context. No WebView runtime, installer, service, driver or external AI runtime is needed. The x64 release statically links the MSVC runtime where supported.
+Requires a Windows x64 Rust MSVC toolchain (Rust 1.95 or later; verified with 1.96.1), the MSVC linker and Windows SDK. The UI uses egui 0.33.3 with CPU rasterization and Win32 GDI presentation. The application creates no OpenGL, DirectX or Vulkan context. No WebView runtime, installer, service, driver or external AI runtime is needed. The x64 release statically links the MSVC runtime where supported.
 
 ```powershell
 Set-Location E:\work\github\app-uninstaller
 ./scripts/check.ps1 -Offline
 ./scripts/package.ps1 -Offline
 ```
+
+The source checkout requires the sibling `../rust-auto-updator/crates/rust-auto-updator` workspace (the reusable update core). Obtain both sources together; the updater is not yet published as a registry package, and standalone CI must provision this sibling before building.
 
 Omit `-Offline` only when dependency downloads are available and desired. Cargo uses two jobs and this repository's `target` folder. Packaging writes `dist/AppUninstaller-v0.1.2.exe`, `SHA256SUMS.txt` and license notices. It never executes the application or publishes anything. Run the EXE manually only when interactive testing is authorized.
 
@@ -53,7 +55,7 @@ Keep the JSON journal with its quarantine folder. If the journal is lost, the fo
 - Quarantine is selected at the proven-folder level; individual files are previewed but cannot be separately removed. Ownership evidence is session-only. Closing the app loses an unfinished removal review; existing quarantine journals remain recoverable.
 - File hashes and repeated checks protect ordinary review mistakes, not hostile concurrent filesystem/registry mutation. Do not run simultaneous cleaners/installers against the same folder. A directory rename is not an OS restore point and cannot undo the publisher's actions.
 - Only Windows x64 portable releases are selected for updates. No release currently exists: an unavailable repository/release is reported as unavailable, never “up to date.” Installation requires a writable EXE folder and a supplied SHA-256 digest or matching `SHA256SUMS.txt`. Checksums use the same GitHub trust channel; Authenticode signing is not configured.
-- A failed helper records `result.txt` under `.AppUninstaller-update-<UUID>` beside the EXE. The most recent report is visible in Settings on the next manual launch. `previous.exe` and staged files remain for manual recovery; helper/staging cleanup is intentionally deferred. A successful launch request does not prove that the new GUI finished starting.
+- Reusable release validation, HTTPS download, SHA-256/PE checks, atomic replacement, rollback and safe cleanup live in `rust-auto-updator`. Staging uses `.AppUninstaller-update-*` beside the EXE; cleanup starts only after the updated native host initializes. Settings and quarantine data stay outside staging. Reports from older helpers remain readable on migration. A successful launch request does not prove that every new screen is usable.
 - In-place updates preserve the original launch path. If that filename contains an older version, Settings shows the actual installed binary version; newly published download assets still use their correct versioned filenames.
 
 ## Verification and screenshots

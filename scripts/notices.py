@@ -32,6 +32,12 @@ for package in sorted(metadata["packages"], key=lambda p: (p["name"], p["version
         if name.startswith(("license", "copying", "notice")) or "license" in name or name in {"ofl.txt", "ufl.txt", "hack-regular.txt"}:
             if path.stat().st_size <= 512 * 1024:
                 paths.add(path)
+    # Shared path crates inherit their MIT license from the sibling workspace root.
+    if package["name"] == "rust-auto-updator" and package.get("source") is None:
+        shared_license = folder.parents[1] / "LICENSE"
+        if shared_license.is_file():
+            parts.append("\n--- workspace LICENSE ---\n")
+            parts.append(shared_license.read_text(encoding="utf-8") + "\n")
     if package.get("license_file"):
         paths.add(folder / package["license_file"])
     for path in sorted(paths):

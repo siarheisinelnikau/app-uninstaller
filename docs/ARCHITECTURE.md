@@ -11,7 +11,7 @@ The application is a Windows-first Rust binary. `main.rs` dispatches the desktop
 | `removal.rs` | Registration observation state, confirmation thresholds, bounded deadlines and finite row progress | Pure model; injected time and observations |
 | `leftovers.rs` | Ownership capture, bounded manifest/SHA-256, post-uninstall review, quarantine/recovery | Read-only discovery separated from explicit rename/journal operations |
 | `settings.rs` | Startup update preference, per-user data location | Small JSON read; atomic replacement on save |
-| `updater.rs` | Stable-release selection, checksums, bounded HTTPS downloads, helper/rollback | Network/staging only after check/download commands; replacement only in helper |
+| `updater.rs` | Product configuration and sleeping-worker adapters to `rust-auto-updator` | No local network/download/replacement implementation |
 | `worker.rs` | Serial operation sequencing and revalidation | One worker, two queued commands, sixteen result messages |
 | `ui.rs` / `design.rs` | Inventory, review, consent, recovery, settings and shared visual roles | Sends explicit commands; uploads prepared icon textures |
 | `software.rs` / `repaint.rs` | Reactive winit host, CPU rasterizer, retained bitmap, Win32 GDI and scheduling | Native window/presentation; optional bounded diagnostic counters |
@@ -51,9 +51,9 @@ The registry is a publisher-provided evidence source, not an authenticity guaran
 
 Startup loads preferences before deciding whether to check. Corrupt/unavailable settings disable the startup request for that session and expose the error. A stable-release check uses the canonical public GitHub API, no login/token, numeric SemVer and an exact x64 portable asset name. Drafts/prereleases are excluded; errors, 404s, rate limits and missing compatible/checksummed assets are not treated as up-to-date results.
 
-Download is initiated by a button and runs with a size cap, timeouts and throttled progress. It stages beside the installed EXE, verifies size and SHA-256 from GitHub's release digest or `SHA256SUMS.txt`, copies the running EXE as a helper, and writes a constrained plan. The user then chooses restart/install. Before spawning the helper, hashes are checked again. The helper waits for the parent to exit, revalidates paths/hashes, renames the current file to `previous.exe`, installs the payload and requests a restart. Failed replacement or launch rolls back with errors preserved. Neither settings nor journals are replaced. No updater code is executed by the test suite; the replacement engine is tested with inert fixture bytes and an injected no-op/failing launch callback.
+Download is initiated by a button and runs on the existing worker. The sibling `rust-auto-updator` owns stable-release selection, canonical URLs, bounded HTTPS, digest/checksum agreement, complete PE/architecture validation, staging and atomic Windows replacement/rollback. `updater.rs` supplies only product identity, the 150 MiB limit, staging names and host adapters. UI clones share one prepared payload; the core cleans unhanded staging when the last owner drops it. Explicit Restart hands off only the verified payload, then the UI exits.
 
-Staged reports/backups are retained and surfaced on next launch. Signed binaries, automatic helper cleanup, multi-instance coordination and an end-to-end published-release update test remain future validation/work. The updater does not create scheduled tasks, services, registry entries or elevated processes.
+The helper protocol is dispatched before the GUI. Updated startup accepts `--cleanup-update`; cleanup begins after native host initialization. Existing settings and quarantine journals are untouched. Old versions used their old executable as helper, so their positional plan protocol remains contained in that old binary; the new host needs no duplicated old installer. The adapter still reads reports retained by older helpers. No update/helper is executed during development tests. Shared-core regression coverage lives in its own repository; real published-release download/replacement/restart remains unverified.
 
 ## Implementation references
 

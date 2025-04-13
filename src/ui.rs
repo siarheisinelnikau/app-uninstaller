@@ -68,7 +68,7 @@ pub struct Desktop {
     update_status: String,
     update_busy: bool,
     progress: Option<(u64, u64)>,
-    staged: Option<PathBuf>,
+    staged: Option<crate::updater::StagedUpdate>,
     saved_settings: Option<Settings>,
     exit_requested: bool,
     removal_view: Option<RemovalView>,

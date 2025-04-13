@@ -25,7 +25,7 @@ pub enum Work {
     Save(Settings),
     CheckUpdate,
     Download(Update),
-    Install(PathBuf),
+    Install(updater::StagedUpdate),
     StopWatching,
 }
 pub enum Event {
@@ -51,7 +51,7 @@ pub enum Event {
     UpdateStarted,
     UpdateChecked(std::result::Result<Option<Update>, String>),
     Progress(u64, u64),
-    Downloaded(PathBuf),
+    Downloaded(updater::StagedUpdate),
     Installing,
     Error(String),
 }

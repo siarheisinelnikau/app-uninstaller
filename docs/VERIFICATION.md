@@ -2,7 +2,19 @@
 
 Date: 2026-11-01 (Europe/Minsk). Current verification uses no Computer Use. Real applications were not uninstalled, real leftovers were not quarantined, and no update was downloaded or installed. No remote Git operation or publication occurred. No native UAC request was executed during verification.
 
-## Automated checks
+## Rust workspace audit (2026-11-01)
+
+The reusable update implementation now lives in the sibling `rust-auto-updator` core. This repository retains product configuration, its existing sleeping worker, explicit user download/restart actions and bounded durable helper-error reporting. The adapter accepts GitHub SHA-256 digests when no checksum asset is present, and asks the core to validate the GUI PE subsystem and target architecture. New startup handles the core cleanup protocol only after native host initialization. Tests do not download or install updates.
+
+The application previously set only a window icon and lacked an embedded EXE icon. `build.rs` now embeds the same original mark and version metadata at 16/20/24/32/48/64/256px. The host sets both ICON_SMALL and ICON_BIG/taskbar through winit. This application has no tray, so there is no tray resource or interaction to certify. `python scripts/verify-icons.py EXE OUTPUT.png` inspects the final EXE as data and renders Win32 resource icons offscreen without launching it.
+
+The optimized static-CRT Windows x64 build passed (`cargo build --release --offline --locked --target x86_64-pc-windows-msvc`). Native LoadImageW/DrawIconEx proof from that exact EXE passed at all seven embedded sizes on light/dark backgrounds; the saved PNG was inspected. Artwork remained visible, with transparent corners and no clipping. SHA-256: `356b1dd67aac2841578338fb1750c672d26db57c3d4df48f771d7e9ac4045a40`. Resource proof does not establish OS window/taskbar integration.
+
+Checks: all-target Clippy with warnings denied passed; 31 fixture tests passed (21 library, 10 integration). Redraw regressions verify consumed deadlines stay idle, hidden dirty work waits for visibility, identical scenes skip rasterization, and worker progress/exit is consumed without constructing a hidden frame. The Windows dependency tree contains `egui_software_backend` and `softbuffer` without eframe/glow/glutin/wgpu; the pinned softbuffer Win32 presenter uses CreateDIBSection and BitBlt. Existing CPU/GDI scheduling remains event driven; no rendering-backend rewrite was necessary.
+
+This audit does not launch AppUninstaller, following this repository's code-only instruction. Fresh visible/hidden CPU/frame measurements, taskbar/Alt-Tab integration and perceived input responsiveness remain unverified; the older bounded evidence below is historical. No Computer Use or real uninstallation was performed. Source checkout/CI now requires the sibling updater workspace; it has not been published or fetched in this task. Existing real main/settings screenshots remain in README.
+
+## Prior automated checks
 
 - `./scripts/check.ps1 -Offline` passed: formatting, Clippy with warnings denied, and **35 tests** (25 library and 10 integration tests). The main binary test harness ran zero tests and did not open the GUI.
 - Tests cover safe command/MSI planning, search, ownership boundaries, changed/new files and folders, quarantine/restore preservation and overwrite refusal, settings persistence/corruption, release/checksum selection, simulated updater rollback, redraw deadlines/cache invalidation, and draining background progress/exit events without constructing a UI frame.

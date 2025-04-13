@@ -16,3 +16,5 @@ pub mod worker;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const REPOSITORY: &str = "https://github.com/siarheisinelnikau/app-uninstaller";
+
+mod icon_pixels;

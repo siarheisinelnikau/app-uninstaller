@@ -33,13 +33,15 @@ fn main() -> anyhow::Result<()> {
         );
     }
     if args.first().is_some_and(|arg| arg == "--apply-update") {
-        anyhow::ensure!(args.len() == 2, "Expected update plan path");
-        if let Err(error) = updater::apply_helper(std::path::Path::new(&args[1])) {
-            updater::report_helper_failure(&error);
-            return Err(error);
-        }
-        return Ok(());
+        anyhow::ensure!(args.len() == 1, "Unexpected update helper arguments");
+        return updater::apply_helper().inspect_err(updater::report_helper_failure);
     }
+    let args = if args.first().is_some_and(|arg| arg == "--cleanup-update") {
+        anyhow::ensure!(args.len() == 2, "Expected update cleanup directory");
+        Vec::new()
+    } else {
+        args
+    };
     let diagnostics = if args.len() >= 2 && args[0] == "--diagnostics" {
         Some(std::path::PathBuf::from(&args[1]))
     } else {

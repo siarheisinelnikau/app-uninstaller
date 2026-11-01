@@ -1,7 +1,7 @@
 {
   "file": "AppUninstaller-v0.2.0.exe",
-  "bytes": 8624128,
-  "sha256": "28c4f737947b3df883c29f56be3533a46baf4aa50c10372244abd9875e260ff4",
+  "bytes": 8623616,
+  "sha256": "6d4b958abb8da9b69437ef7efed0365e57e206980a087ace5c7c6ef83fadd803",
   "architecture": "x86_64",
   "subsystem": "Windows GUI",
   "imports": [

@@ -36,6 +36,12 @@ pub fn palette(theme: crate::settings::Theme) -> Palette {
 
 pub fn apply_theme(ctx: &Context, theme: crate::settings::Theme) {
     let colors = palette(theme);
+    // Pin the saved preference: an OS ThemeChanged event must not select another style.
+    ctx.set_theme(if theme == crate::settings::Theme::Dark {
+        egui::Theme::Dark
+    } else {
+        egui::Theme::Light
+    });
     let mut visuals = if theme == crate::settings::Theme::Dark {
         egui::Visuals::dark()
     } else {
@@ -87,7 +93,7 @@ pub fn configure(ctx: &Context) {
         }
     }
     apply_theme(ctx, crate::settings::Theme::default());
-    ctx.style_mut(|style| {
+    ctx.all_styles_mut(|style| {
         style.wrap_mode = Some(egui::TextWrapMode::Wrap);
         for (role, size) in [
             (TextStyle::Heading, 22.),
@@ -104,4 +110,54 @@ pub fn configure(ctx: &Context) {
         style.spacing.button_padding = egui::vec2(16., 9.);
         style.animation_time = 0.10;
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn saved_theme_and_typography_survive_opposite_os_theme_events() {
+        let ctx = Context::default();
+        configure(&ctx);
+        for (saved, os_theme, expected) in [
+            (
+                crate::settings::Theme::Light,
+                egui::Theme::Dark,
+                egui::Theme::Light,
+            ),
+            (
+                crate::settings::Theme::Dark,
+                egui::Theme::Light,
+                egui::Theme::Dark,
+            ),
+            (
+                crate::settings::Theme::Light,
+                egui::Theme::Dark,
+                egui::Theme::Light,
+            ),
+        ] {
+            apply_theme(&ctx, saved);
+            let _ = ctx.run(
+                egui::RawInput {
+                    system_theme: Some(os_theme),
+                    ..Default::default()
+                },
+                |ctx| {
+                    assert_eq!(ctx.theme(), expected);
+                    let style = ctx.style();
+                    assert_eq!(
+                        style.visuals.dark_mode,
+                        saved == crate::settings::Theme::Dark
+                    );
+                    assert_eq!(style.visuals.panel_fill, palette(saved).background);
+                    assert_eq!(style.visuals.window_fill, palette(saved).surface);
+                    assert_eq!(style.text_styles[&TextStyle::Body].size, 15.);
+                    assert_eq!(style.text_styles[&TextStyle::Heading].size, 22.);
+                    assert_eq!(style.spacing.item_spacing, egui::vec2(12., 10.));
+                    assert_eq!(style.spacing.button_padding, egui::vec2(16., 9.));
+                },
+            );
+        }
+    }
 }

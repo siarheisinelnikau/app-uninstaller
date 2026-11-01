@@ -181,10 +181,12 @@ impl State {
                 warnings.push(format!("Settings unavailable: {error}. Startup update check is disabled for this session"));
                 Settings {
                     check_on_startup: false,
+                    ..Settings::default()
                 }
             }
             None => Settings {
                 check_on_startup: false,
+                ..Settings::default()
             },
         };
         let records = match data

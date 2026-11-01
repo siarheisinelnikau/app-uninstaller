@@ -245,6 +245,7 @@ fn settings_opt_out_is_persistent_and_corruption_is_visible() {
         temp.path(),
         &settings::Settings {
             check_on_startup: false,
+            ..Default::default()
         },
     )
     .unwrap();

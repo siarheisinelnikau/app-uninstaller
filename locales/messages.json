@@ -1,0 +1,1332 @@
+{
+  "A careful way to remove apps.": [
+    "Бережное удаление приложений.",
+    "Désinstaller les applications avec soin.",
+    "Anwendungen sorgfältig entfernen.",
+    "Desinstala aplicaciones con cuidado.",
+    "Rimuovi le applicazioni con cura."
+  ],
+  "About & local storage": [
+    "О программе и хранении данных",
+    "À propos et stockage local",
+    "Info und lokaler Speicher",
+    "Acerca de y almacenamiento local",
+    "Informazioni e archivio locale"
+  ],
+  "Administrator permission needed": [
+    "Требуются права администратора",
+    "Autorisation administrateur requise",
+    "Administratorrechte erforderlich",
+    "Se requieren permisos de administrador",
+    "Sono necessari i permessi di amministratore"
+  ],
+  "Administrator request canceled": [
+    "Запрос прав администратора отменён",
+    "Demande d’administration annulée",
+    "Administratoranfrage abgebrochen",
+    "Solicitud de administrador cancelada",
+    "Richiesta di amministratore annullata"
+  ],
+  "After uninstalling, review proven leftovers and choose whether to quarantine them. Quarantine is reversible; the publisher’s uninstall is not.": [
+    "После удаления проверьте подтверждённые остатки и решите, помещать ли их в карантин. Карантин обратим; удаление издателем — нет.",
+    "Après la désinstallation, examinez les restes identifiés et décidez de leur mise en quarantaine. La quarantaine est réversible ; la désinstallation de l’éditeur ne l’est pas.",
+    "Prüfen Sie nach der Deinstallation eindeutig zugeordnete Reste und entscheiden Sie über die Quarantäne. Diese ist umkehrbar; die Deinstallation des Herstellers nicht.",
+    "Tras desinstalar, revisa los restos identificados y decide si ponerlos en cuarentena. La cuarentena es reversible; la desinstalación del editor no.",
+    "Dopo la disinstallazione, esamina i residui verificati e decidi se metterli in quarantena. La quarantena è reversibile; la disinstallazione dell’autore no."
+  ],
+  "AppUninstaller {0} · Windows x64 portable · MIT license": [
+    "AppUninstaller {0} · Windows x64, портативная версия · лицензия MIT",
+    "AppUninstaller {0} · Windows x64 portable · licence MIT",
+    "AppUninstaller {0} · Windows x64 portabel · MIT-Lizenz",
+    "AppUninstaller {0} · Windows x64 portátil · licencia MIT",
+    "AppUninstaller {0} · Windows x64 portatile · licenza MIT"
+  ],
+  "Appearance & language": [
+    "Оформление и язык",
+    "Apparence et langue",
+    "Darstellung und Sprache",
+    "Apariencia e idioma",
+    "Aspetto e lingua"
+  ],
+  "Applications": [
+    "Приложения",
+    "Applications",
+    "Anwendungen",
+    "Aplicaciones",
+    "Applicazioni"
+  ],
+  "Arguments": [
+    "Аргументы",
+    "Arguments",
+    "Argumente",
+    "Argumentos",
+    "Argomenti"
+  ],
+  "CPU rendering · Windows GDI · no graphics API context": [
+    "Программная отрисовка · Windows GDI · без графического API",
+    "Rendu CPU · Windows GDI · sans contexte d’API graphique",
+    "CPU-Rendering · Windows GDI · kein Grafik-API-Kontext",
+    "Renderizado por CPU · Windows GDI · sin contexto de API gráfica",
+    "Rendering CPU · Windows GDI · nessun contesto API grafico"
+  ],
+  "Cancel": [
+    "Отмена",
+    "Annuler",
+    "Abbrechen",
+    "Cancelar",
+    "Annulla"
+  ],
+  "Canonical repository": [
+    "Основной репозиторий",
+    "Dépôt officiel",
+    "Offizielles Repository",
+    "Repositorio oficial",
+    "Repository ufficiale"
+  ],
+  "Changes apply immediately and are saved for the next launch.": [
+    "Изменения применяются сразу и сохраняются для следующего запуска.",
+    "Les changements sont immédiats et conservés au prochain lancement.",
+    "Änderungen gelten sofort und bleiben beim nächsten Start erhalten.",
+    "Los cambios se aplican al instante y se guardan para el próximo inicio.",
+    "Le modifiche si applicano subito e vengono salvate per il prossimo avvio."
+  ],
+  "Check for updates": [
+    "Проверить обновления",
+    "Rechercher des mises à jour",
+    "Nach Updates suchen",
+    "Buscar actualizaciones",
+    "Controlla aggiornamenti"
+  ],
+  "Check for updates on startup": [
+    "Проверять обновления при запуске",
+    "Rechercher des mises à jour au démarrage",
+    "Beim Start nach Updates suchen",
+    "Buscar actualizaciones al iniciar",
+    "Controlla aggiornamenti all’avvio"
+  ],
+  "Checking Windows registration…": [
+    "Проверка регистрации Windows…",
+    "Vérification de l’inscription Windows…",
+    "Windows-Registrierung wird geprüft…",
+    "Comprobando el registro de Windows…",
+    "Verifica della registrazione Windows…"
+  ],
+  "Checking removal…": [
+    "Проверка удаления…",
+    "Vérification de la désinstallation…",
+    "Deinstallation wird geprüft…",
+    "Comprobando la desinstalación…",
+    "Verifica della disinstallazione…"
+  ],
+  "Checks quietly in the background. Turning this off prevents startup requests; manual checking stays available. Downloads and installation require your action.": [
+    "Проверка идёт в фоне. Отключение запрещает запросы при запуске; ручная проверка остаётся доступной. Загрузка и установка запускаются вами.",
+    "La vérification s’effectue discrètement en arrière-plan. Désactiver cette option empêche les requêtes au démarrage ; la vérification manuelle reste disponible. Vous déclenchez le téléchargement et l’installation.",
+    "Die Prüfung läuft unauffällig im Hintergrund. Deaktivieren verhindert Anfragen beim Start; die manuelle Suche bleibt verfügbar. Download und Installation starten Sie selbst.",
+    "La comprobación se realiza en segundo plano. Al desactivarla no se harán solicitudes al iniciar; la búsqueda manual seguirá disponible. Tú inicias la descarga y la instalación.",
+    "Il controllo avviene in background. Disattivandolo non verranno inviate richieste all’avvio; il controllo manuale resta disponibile. Download e installazione richiedono una tua azione."
+  ],
+  "Choose an app and review its registered uninstaller before making changes.": [
+    "Выберите приложение и проверьте зарегистрированную программу удаления перед изменениями.",
+    "Choisissez une application et examinez son programme de désinstallation avant toute modification.",
+    "Wählen Sie eine Anwendung und prüfen Sie ihr registriertes Deinstallationsprogramm vor Änderungen.",
+    "Elige una aplicación y revisa su desinstalador registrado antes de hacer cambios.",
+    "Scegli un’applicazione e controlla il programma di disinstallazione registrato prima di modificarla."
+  ],
+  "Could not check for updates: {0}": [
+    "Не удалось проверить обновления: {0}",
+    "Impossible de rechercher des mises à jour : {0}",
+    "Updates konnten nicht geprüft werden: {0}",
+    "No se pudieron buscar actualizaciones: {0}",
+    "Impossibile controllare gli aggiornamenti: {0}"
+  ],
+  "Dark": [
+    "Тёмная",
+    "Sombre",
+    "Dunkel",
+    "Oscuro",
+    "Scuro"
+  ],
+  "Dismiss": [
+    "Скрыть",
+    "Fermer",
+    "Schließen",
+    "Cerrar",
+    "Chiudi"
+  ],
+  "Download and install": [
+    "Скачать и установить",
+    "Télécharger et installer",
+    "Herunterladen und installieren",
+    "Descargar e instalar",
+    "Scarica e installa"
+  ],
+  "Download is verified against the release SHA-256 before installation. The existing EXE is retained as a rollback backup. Settings and quarantine records stay in your user profile.": [
+    "Перед установкой загрузка проверяется по SHA-256 релиза. Текущий EXE сохраняется для отката. Настройки и записи карантина остаются в профиле пользователя.",
+    "Le téléchargement est vérifié avec le SHA-256 de la version avant l’installation. L’EXE actuel est conservé pour un retour arrière. Les paramètres et la quarantaine restent dans votre profil.",
+    "Vor der Installation wird der Download mit dem SHA-256 der Version geprüft. Die bisherige EXE bleibt als Sicherung erhalten. Einstellungen und Quarantänedaten bleiben im Benutzerprofil.",
+    "La descarga se verifica con el SHA-256 de la versión antes de instalar. El EXE actual se conserva como copia de seguridad. Los ajustes y registros de cuarentena permanecen en tu perfil.",
+    "Il download viene verificato con lo SHA-256 della versione prima dell’installazione. L’EXE attuale viene conservato per il ripristino. Impostazioni e quarantena restano nel profilo utente."
+  ],
+  "Every proposed file/folder and file SHA-256": [
+    "Все предлагаемые файлы и папки, SHA-256 файлов",
+    "Chaque fichier/dossier proposé et son SHA-256",
+    "Alle vorgeschlagenen Dateien/Ordner und Datei-SHA-256",
+    "Cada archivo/carpeta propuesto y su SHA-256",
+    "Tutti i file e le cartelle proposti e SHA-256 dei file"
+  ],
+  "Executable": [
+    "Исполняемый файл",
+    "Exécutable",
+    "Programmdatei",
+    "Ejecutable",
+    "Eseguibile"
+  ],
+  "Explainable leftover review": [
+    "Проверка остатков с обоснованием",
+    "Examen justifié des restes",
+    "Nachvollziehbare Prüfung von Resten",
+    "Revisión justificada de restos",
+    "Esame motivato dei residui"
+  ],
+  "Files must still match the quarantine journal. An existing original location will never be overwritten.": [
+    "Файлы должны соответствовать журналу карантина. Существующий исходный путь никогда не перезаписывается.",
+    "Les fichiers doivent toujours correspondre au journal de quarantaine. Un emplacement d’origine existant ne sera jamais écrasé.",
+    "Die Dateien müssen weiterhin zum Quarantäneprotokoll passen. Ein vorhandener ursprünglicher Speicherort wird nie überschrieben.",
+    "Los archivos deben seguir coincidiendo con el registro de cuarentena. Nunca se sobrescribirá una ubicación original existente.",
+    "I file devono ancora corrispondere al registro di quarantena. Una destinazione originale esistente non viene mai sovrascritta."
+  ],
+  "Finish any publisher windows. The installed-app registration is checked automatically.": [
+    "Завершите работу в окнах издателя. Регистрация приложения проверяется автоматически.",
+    "Terminez les fenêtres de l’éditeur. L’inscription de l’application est vérifiée automatiquement.",
+    "Schließen Sie die Schritte in den Herstellerfenstern ab. Die Anwendungsregistrierung wird automatisch geprüft.",
+    "Completa las ventanas del editor. El registro de la aplicación se comprueba automáticamente.",
+    "Completa le finestre dell’autore. La registrazione dell’applicazione viene controllata automaticamente."
+  ],
+  "Folder": [
+    "Папка",
+    "Dossier",
+    "Ordner",
+    "Carpeta",
+    "Cartella"
+  ],
+  "Folder preview": [
+    "Просмотр папки",
+    "Aperçu du dossier",
+    "Ordnervorschau",
+    "Vista previa de la carpeta",
+    "Anteprima cartella"
+  ],
+  "How removal and recovery work": [
+    "Как работают удаление и восстановление",
+    "Fonctionnement de la suppression et de la restauration",
+    "So funktionieren Entfernung und Wiederherstellung",
+    "Cómo funcionan la eliminación y la recuperación",
+    "Come funzionano rimozione e ripristino"
+  ],
+  "I reviewed this action and want to run the registered uninstaller": [
+    "Я проверил действие и хочу запустить зарегистрированную программу удаления",
+    "J’ai examiné cette action et souhaite lancer le programme de désinstallation enregistré",
+    "Ich habe diese Aktion geprüft und möchte das registrierte Deinstallationsprogramm starten",
+    "He revisado esta acción y quiero ejecutar el desinstalador registrado",
+    "Ho controllato questa azione e voglio avviare il programma di disinstallazione registrato"
+  ],
+  "I reviewed this folder and select it for reversible quarantine": [
+    "Я проверил папку и выбираю её для обратимого карантина",
+    "J’ai examiné ce dossier et le sélectionne pour une quarantaine réversible",
+    "Ich habe diesen Ordner geprüft und wähle ihn für die umkehrbare Quarantäne aus",
+    "He revisado esta carpeta y la selecciono para una cuarentena reversible",
+    "Ho controllato questa cartella e la seleziono per la quarantena reversibile"
+  ],
+  "Include system components (view only)": [
+    "Показывать системные компоненты (только просмотр)",
+    "Inclure les composants système (lecture seule)",
+    "Systemkomponenten anzeigen (nur Ansicht)",
+    "Incluir componentes del sistema (solo lectura)",
+    "Includi componenti di sistema (sola lettura)"
+  ],
+  "Installed applications": [
+    "Установленные приложения",
+    "Applications installées",
+    "Installierte Anwendungen",
+    "Aplicaciones instaladas",
+    "Applicazioni installate"
+  ],
+  "Installed for": [
+    "Установлено для",
+    "Installée pour",
+    "Installiert für",
+    "Instalada para",
+    "Installata per"
+  ],
+  "Inventory is incomplete. Review the read errors in Settings before removing an app.": [
+    "Список неполный. Проверьте ошибки чтения в настройках перед удалением приложения.",
+    "L’inventaire est incomplet. Examinez les erreurs de lecture dans les paramètres avant une désinstallation.",
+    "Die Liste ist unvollständig. Prüfen Sie die Lesefehler in den Einstellungen vor einer Deinstallation.",
+    "El inventario está incompleto. Revisa los errores de lectura en Ajustes antes de desinstalar.",
+    "L’inventario è incompleto. Controlla gli errori di lettura nelle impostazioni prima di disinstallare."
+  ],
+  "Language": [
+    "Язык",
+    "Langue",
+    "Sprache",
+    "Idioma",
+    "Lingua"
+  ],
+  "Largest first": [
+    "Сначала самые большие",
+    "Les plus volumineuses d’abord",
+    "Größte zuerst",
+    "Mayor tamaño primero",
+    "Più grandi prima"
+  ],
+  "Leftover review": [
+    "Проверка остатков",
+    "Examen des restes",
+    "Reste prüfen",
+    "Revisar restos",
+    "Esamina residui"
+  ],
+  "Leftover review unavailable: {0}": [
+    "Проверка остатков недоступна: {0}",
+    "Examen des restes indisponible : {0}",
+    "Prüfung von Resten nicht verfügbar: {0}",
+    "Revisión de restos no disponible: {0}",
+    "Esame dei residui non disponibile: {0}"
+  ],
+  "Light": [
+    "Светлая",
+    "Clair",
+    "Hell",
+    "Claro",
+    "Chiaro"
+  ],
+  "Name": [
+    "Название",
+    "Nom",
+    "Name",
+    "Nombre",
+    "Nome"
+  ],
+  "No quarantined folders.": [
+    "В карантине нет папок.",
+    "Aucun dossier en quarantaine.",
+    "Keine Ordner in Quarantäne.",
+    "No hay carpetas en cuarentena.",
+    "Nessuna cartella in quarantena."
+  ],
+  "No removal session has evidence to review. Start with Review uninstall in Applications. Evidence is kept in memory for this session only.": [
+    "Нет сеанса удаления с данными для проверки. Начните с проверки удаления в разделе «Приложения». Данные хранятся в памяти только до закрытия программы.",
+    "Aucune désinstallation ne dispose de preuves à examiner. Commencez par examiner une désinstallation dans Applications. Les preuves restent uniquement en mémoire pendant cette session.",
+    "Keine Deinstallation enthält Nachweise zur Prüfung. Beginnen Sie unter Anwendungen mit der Deinstallationsprüfung. Nachweise bleiben nur während dieser Sitzung im Arbeitsspeicher.",
+    "No hay pruebas de una desinstalación para revisar. Empieza con Revisar desinstalación en Aplicaciones. Las pruebas se guardan en memoria solo durante esta sesión.",
+    "Nessuna sessione di rimozione contiene prove da esaminare. Inizia con Esamina disinstallazione in Applicazioni. Le prove restano in memoria solo per questa sessione."
+  ],
+  "No telemetry. No registry cleaning. Inventory stays local. Network access is used only for updates.": [
+    "Без телеметрии и очистки реестра. Список остаётся на компьютере. Сеть используется только для обновлений.",
+    "Aucune télémétrie ni nettoyage du registre. L’inventaire reste local. Le réseau sert uniquement aux mises à jour.",
+    "Keine Telemetrie oder Registry-Bereinigung. Die Liste bleibt lokal. Netzwerkzugriff erfolgt nur für Updates.",
+    "Sin telemetría ni limpieza del registro. El inventario permanece local. La red se usa solo para actualizaciones.",
+    "Nessuna telemetria o pulizia del registro. L’inventario resta locale. La rete serve solo per gli aggiornamenti."
+  ],
+  "Not supplied": [
+    "Не указано",
+    "Non renseigné",
+    "Nicht angegeben",
+    "No especificado",
+    "Non indicato"
+  ],
+  "Nothing changes until you confirm the registered action.": [
+    "Ничего не изменится до подтверждения зарегистрированного действия.",
+    "Rien ne change avant votre confirmation de l’action enregistrée.",
+    "Bis zur Bestätigung der registrierten Aktion wird nichts geändert.",
+    "Nada cambia hasta que confirmes la acción registrada.",
+    "Nulla cambia finché non confermi l’azione registrata."
+  ],
+  "Only a proven installation folder can be suggested. Documents, shared locations, custom paths and registry values are excluded. Missing ownership evidence means no cleanup suggestion.": [
+    "Предлагается только папка установки с подтверждённой принадлежностью. Документы, общие папки, нестандартные пути и значения реестра исключены. Без доказательств очистка не предлагается.",
+    "Seul un dossier d’installation dont l’appartenance est prouvée peut être proposé. Les documents, emplacements partagés, chemins personnalisés et valeurs de registre sont exclus. Sans preuve, aucun nettoyage n’est proposé.",
+    "Nur eindeutig zugeordnete Installationsordner werden vorgeschlagen. Dokumente, gemeinsame Speicherorte, eigene Pfade und Registry-Werte sind ausgeschlossen. Ohne Nachweis gibt es keinen Bereinigungsvorschlag.",
+    "Solo se propone una carpeta de instalación con pertenencia demostrada. Se excluyen documentos, ubicaciones compartidas, rutas personalizadas y valores del registro. Sin pruebas no se propone limpieza.",
+    "Viene proposta solo una cartella di installazione con appartenenza dimostrata. Documenti, percorsi condivisi o personalizzati e valori del registro sono esclusi. Senza prove non viene proposta alcuna pulizia."
+  ],
+  "Only the empty folder remains.": [
+    "Осталась только пустая папка.",
+    "Il ne reste que le dossier vide.",
+    "Nur der leere Ordner bleibt übrig.",
+    "Solo queda la carpeta vacía.",
+    "Resta solo la cartella vuota."
+  ],
+  "Open-source licenses and bundled font notices": [
+    "Лицензии открытого ПО и встроенных шрифтов",
+    "Licences open source et mentions des polices incluses",
+    "Open-Source-Lizenzen und Hinweise zu Schriftarten",
+    "Licencias de código abierto y avisos de fuentes incluidas",
+    "Licenze open source e avvisi dei caratteri inclusi"
+  ],
+  "Original: {0}": [
+    "Исходный путь: {0}",
+    "Origine : {0}",
+    "Ursprünglich: {0}",
+    "Original: {0}",
+    "Originale: {0}"
+  ],
+  "Ownership evidence captured. A leftover suggestion still requires successful registration removal and unchanged file hashes.": [
+    "Доказательства принадлежности сохранены. Остатки будут предложены только после удаления регистрации и проверки неизменности хешей файлов.",
+    "Les preuves d’appartenance sont enregistrées. Une suggestion nécessite encore la suppression de l’inscription et des empreintes de fichiers inchangées.",
+    "Zuordnungsnachweise wurden erfasst. Vorschläge erfordern weiterhin eine entfernte Registrierung und unveränderte Datei-Hashes.",
+    "Se han guardado pruebas de pertenencia. Para proponer restos aún se requiere eliminar el registro y conservar los hashes de los archivos.",
+    "Le prove di appartenenza sono state raccolte. Per proporre residui servono ancora la rimozione della registrazione e hash dei file invariati."
+  ],
+  "Publisher": [
+    "Издатель",
+    "Éditeur",
+    "Hersteller",
+    "Editor",
+    "Autore"
+  ],
+  "Publisher not supplied": [
+    "Издатель не указан",
+    "Éditeur non renseigné",
+    "Hersteller nicht angegeben",
+    "Editor no especificado",
+    "Autore non indicato"
+  ],
+  "Publisher uninstaller finished · Review leftovers": [
+    "Программа удаления завершена · Проверить остатки",
+    "Désinstallation de l’éditeur terminée · Examiner les restes",
+    "Deinstallationsprogramm beendet · Reste prüfen",
+    "Desinstalador del editor finalizado · Revisar restos",
+    "Disinstallazione dell’autore terminata · Esamina residui"
+  ],
+  "Publisher: {0}": [
+    "Издатель: {0}",
+    "Éditeur : {0}",
+    "Hersteller: {0}",
+    "Editor: {0}",
+    "Autore: {0}"
+  ],
+  "Quarantine": [
+    "Карантин",
+    "Quarantaine",
+    "Quarantäne",
+    "Cuarentena",
+    "Quarantena"
+  ],
+  "Quarantine renames the folder beside its original location. It preserves data and uses the same disk space. Restore is available in Quarantine. Access errors leave the original in place.": [
+    "Карантин переименовывает папку рядом с исходной. Данные сохраняются и занимают столько же места. Восстановление доступно в разделе «Карантин». При ошибке доступа исходная папка остаётся на месте.",
+    "La quarantaine renomme le dossier à côté de son emplacement d’origine. Les données et l’espace occupé sont conservés. La restauration est disponible dans Quarantaine. Une erreur d’accès laisse l’original en place.",
+    "Die Quarantäne benennt den Ordner am ursprünglichen Ort um. Daten und Speicherbedarf bleiben erhalten. Die Wiederherstellung finden Sie unter Quarantäne. Bei Zugriffsfehlern bleibt das Original bestehen.",
+    "La cuarentena cambia el nombre de la carpeta junto a su ubicación original. Conserva los datos y el espacio ocupado. Puedes restaurarla en Cuarentena. Los errores de acceso dejan el original intacto.",
+    "La quarantena rinomina la cartella accanto al percorso originale. Conserva dati e spazio occupato. Il ripristino è disponibile in Quarantena. In caso di errore di accesso l’originale resta al suo posto."
+  ],
+  "Quarantine selected folder": [
+    "Поместить выбранную папку в карантин",
+    "Mettre le dossier sélectionné en quarantaine",
+    "Ausgewählten Ordner in Quarantäne verschieben",
+    "Poner la carpeta seleccionada en cuarentena",
+    "Metti in quarantena la cartella selezionata"
+  ],
+  "Quarantine: {0}": [
+    "Карантин: {0}",
+    "Quarantaine : {0}",
+    "Quarantäne: {0}",
+    "Cuarentena: {0}",
+    "Quarantena: {0}"
+  ],
+  "Quarantined folders remain on the same drive. Restore never overwrites an existing location. Restoring files does not reinstall a program. Permanent deletion is intentionally manual.": [
+    "Папки карантина остаются на том же диске. Восстановление не перезаписывает существующие пути и не переустанавливает программу. Безвозвратное удаление выполняется только вручную.",
+    "Les dossiers en quarantaine restent sur le même disque. La restauration n’écrase aucun emplacement existant et ne réinstalle pas le programme. La suppression définitive reste manuelle.",
+    "Quarantäneordner bleiben auf demselben Laufwerk. Die Wiederherstellung überschreibt keine vorhandenen Orte und installiert Programme nicht neu. Endgültiges Löschen erfolgt bewusst manuell.",
+    "Las carpetas en cuarentena permanecen en la misma unidad. Restaurar nunca sobrescribe una ubicación existente ni reinstala el programa. La eliminación definitiva se realiza manualmente.",
+    "Le cartelle in quarantena restano sulla stessa unità. Il ripristino non sovrascrive percorsi esistenti e non reinstalla il programma. L’eliminazione definitiva resta manuale."
+  ],
+  "Recoverable quarantine": [
+    "Обратимый карантин",
+    "Quarantaine réversible",
+    "Wiederherstellbare Quarantäne",
+    "Cuarentena recuperable",
+    "Quarantena ripristinabile"
+  ],
+  "Refresh": [
+    "Обновить список",
+    "Actualiser",
+    "Aktualisieren",
+    "Actualizar",
+    "Aggiorna elenco"
+  ],
+  "Registered uninstall command": [
+    "Зарегистрированная команда удаления",
+    "Commande de désinstallation enregistrée",
+    "Registrierter Deinstallationsbefehl",
+    "Comando de desinstalación registrado",
+    "Comando di disinstallazione registrato"
+  ],
+  "Release notes": [
+    "Описание версии",
+    "Notes de version",
+    "Versionshinweise",
+    "Notas de la versión",
+    "Note di rilascio"
+  ],
+  "Removal cannot be verified": [
+    "Не удалось проверить удаление",
+    "Désinstallation impossible à vérifier",
+    "Deinstallation nicht überprüfbar",
+    "No se puede verificar la desinstalación",
+    "Disinstallazione non verificabile"
+  ],
+  "Removal not confirmed": [
+    "Удаление не подтверждено",
+    "Désinstallation non confirmée",
+    "Deinstallation nicht bestätigt",
+    "Desinstalación no confirmada",
+    "Disinstallazione non confermata"
+  ],
+  "Removed": [
+    "Удалено",
+    "Désinstallée",
+    "Entfernt",
+    "Desinstalada",
+    "Rimossa"
+  ],
+  "Removed from installed apps": [
+    "Удалено из установленных приложений",
+    "Retirée des applications installées",
+    "Aus installierten Anwendungen entfernt",
+    "Eliminada de aplicaciones instaladas",
+    "Rimossa dalle applicazioni installate"
+  ],
+  "Removed from installed apps · leaves this list in {0}s": [
+    "Удалено из установленных · исчезнет из списка через {0} с",
+    "Retirée des applications installées · disparaît dans {0} s",
+    "Aus installierten Anwendungen entfernt · verlässt die Liste in {0} s",
+    "Eliminada de las instaladas · sale de la lista en {0} s",
+    "Rimossa dalle installate · scompare dall’elenco tra {0} s"
+  ],
+  "Removed · leaves this list in {0}s": [
+    "Удалено · исчезнет из списка через {0} с",
+    "Désinstallée · disparaît de la liste dans {0} s",
+    "Entfernt · verlässt die Liste in {0} s",
+    "Desinstalada · sale de la lista en {0} s",
+    "Rimossa · scompare dall’elenco tra {0} s"
+  ],
+  "Restart and install verified update": [
+    "Перезапустить и установить проверенное обновление",
+    "Redémarrer et installer la mise à jour vérifiée",
+    "Neu starten und geprüftes Update installieren",
+    "Reiniciar e instalar la actualización verificada",
+    "Riavvia e installa l’aggiornamento verificato"
+  ],
+  "Restore folder": [
+    "Восстановить папку",
+    "Restaurer le dossier",
+    "Ordner wiederherstellen",
+    "Restaurar carpeta",
+    "Ripristina cartella"
+  ],
+  "Restore quarantined folder": [
+    "Восстановление папки из карантина",
+    "Restaurer un dossier en quarantaine",
+    "Quarantäneordner wiederherstellen",
+    "Restaurar carpeta en cuarentena",
+    "Ripristina cartella in quarantena"
+  ],
+  "Restore {0} to:": [
+    "Восстановить {0} в:",
+    "Restaurer {0} vers :",
+    "{0} wiederherstellen nach:",
+    "Restaurar {0} en:",
+    "Ripristina {0} in:"
+  ],
+  "Review administrator request": [
+    "Проверить запрос прав администратора",
+    "Examiner la demande d’administration",
+    "Administratoranfrage prüfen",
+    "Revisar solicitud de administrador",
+    "Esamina richiesta di amministratore"
+  ],
+  "Review leftovers": [
+    "Проверить остатки",
+    "Examiner les restes",
+    "Reste prüfen",
+    "Revisar restos",
+    "Esamina residui"
+  ],
+  "Review registered uninstall action": [
+    "Проверка зарегистрированного действия удаления",
+    "Examiner l’action de désinstallation enregistrée",
+    "Registrierte Deinstallationsaktion prüfen",
+    "Revisar la acción de desinstalación registrada",
+    "Esamina l’azione di disinstallazione registrata"
+  ],
+  "Review restore…": [
+    "Проверить восстановление…",
+    "Examiner la restauration…",
+    "Wiederherstellung prüfen…",
+    "Revisar restauración…",
+    "Esamina ripristino…"
+  ],
+  "Review uninstall…": [
+    "Проверить удаление…",
+    "Examiner la désinstallation…",
+    "Deinstallation prüfen…",
+    "Revisar desinstalación…",
+    "Esamina disinstallazione…"
+  ],
+  "Review → Uninstall → Inspect leftovers → Quarantine if needed": [
+    "Проверка → Удаление → Просмотр остатков → Карантин при необходимости",
+    "Examiner → Désinstaller → Inspecter les restes → Mettre en quarantaine si nécessaire",
+    "Prüfen → Deinstallieren → Reste prüfen → Bei Bedarf in Quarantäne",
+    "Revisar → Desinstalar → Inspeccionar restos → Cuarentena si es necesaria",
+    "Esamina → Disinstalla → Controlla residui → Quarantena se necessaria"
+  ],
+  "Reviewed uninstall command": [
+    "Проверенная команда удаления",
+    "Commande de désinstallation examinée",
+    "Geprüfter Deinstallationsbefehl",
+    "Comando de desinstalación revisado",
+    "Comando di disinstallazione esaminato"
+  ],
+  "Run as administrator…": [
+    "Запустить от имени администратора…",
+    "Exécuter en tant qu’administrateur…",
+    "Als Administrator ausführen…",
+    "Ejecutar como administrador…",
+    "Esegui come amministratore…"
+  ],
+  "Run registered uninstaller": [
+    "Запустить зарегистрированную программу удаления",
+    "Lancer le programme de désinstallation enregistré",
+    "Registriertes Deinstallationsprogramm starten",
+    "Ejecutar el desinstalador registrado",
+    "Avvia il programma di disinstallazione registrato"
+  ],
+  "Run the reviewed uninstaller with administrator permission. Windows will ask for approval; AppUninstaller keeps its current permissions.": [
+    "Запустите проверенную программу удаления с правами администратора. Windows запросит подтверждение; права AppUninstaller не изменятся.",
+    "Lancez le programme examiné avec les droits administrateur. Windows demandera votre accord ; les droits d’AppUninstaller restent inchangés.",
+    "Starten Sie das geprüfte Deinstallationsprogramm mit Administratorrechten. Windows fragt nach Ihrer Zustimmung; AppUninstaller behält seine Berechtigungen.",
+    "Ejecuta el desinstalador revisado con permisos de administrador. Windows pedirá aprobación; AppUninstaller conserva sus permisos actuales.",
+    "Avvia il programma esaminato con permessi di amministratore. Windows chiederà conferma; AppUninstaller mantiene i permessi attuali."
+  ],
+  "Search by name or publisher": [
+    "Поиск по названию или издателю",
+    "Rechercher par nom ou éditeur",
+    "Nach Name oder Hersteller suchen",
+    "Buscar por nombre o editor",
+    "Cerca per nome o autore"
+  ],
+  "See its publisher, installation folder and registered removal action here.": [
+    "Здесь появятся издатель, папка установки и зарегистрированное действие удаления.",
+    "L’éditeur, le dossier d’installation et l’action de désinstallation apparaîtront ici.",
+    "Hier sehen Sie Hersteller, Installationsordner und registrierte Deinstallationsaktion.",
+    "Aquí verás su editor, carpeta de instalación y acción de desinstalación registrada.",
+    "Qui trovi autore, cartella di installazione e azione di rimozione registrata."
+  ],
+  "Select an application": [
+    "Выберите приложение",
+    "Sélectionnez une application",
+    "Anwendung auswählen",
+    "Selecciona una aplicación",
+    "Seleziona un’applicazione"
+  ],
+  "Settings": [
+    "Настройки",
+    "Paramètres",
+    "Einstellungen",
+    "Ajustes",
+    "Impostazioni"
+  ],
+  "Settings & updates": [
+    "Настройки и обновления",
+    "Paramètres et mises à jour",
+    "Einstellungen und Updates",
+    "Ajustes y actualizaciones",
+    "Impostazioni e aggiornamenti"
+  ],
+  "Size": [
+    "Размер",
+    "Taille",
+    "Größe",
+    "Tamaño",
+    "Dimensione"
+  ],
+  "Size not supplied": [
+    "Размер не указан",
+    "Taille non renseignée",
+    "Größe nicht angegeben",
+    "Tamaño no especificado",
+    "Dimensione non indicata"
+  ],
+  "Stop watching": [
+    "Остановить наблюдение",
+    "Arrêter la surveillance",
+    "Beobachtung beenden",
+    "Detener seguimiento",
+    "Interrompi osservazione"
+  ],
+  "The item stays in the list until its registration can be checked.": [
+    "Запись останется в списке до возможности проверить регистрацию.",
+    "L’élément reste dans la liste jusqu’à ce que son inscription puisse être vérifiée.",
+    "Der Eintrag bleibt in der Liste, bis seine Registrierung geprüft werden kann.",
+    "El elemento permanece en la lista hasta poder comprobar su registro.",
+    "L’elemento resta nell’elenco finché non sarà possibile verificare la registrazione."
+  ],
+  "Theme": [
+    "Тема",
+    "Thème",
+    "Design",
+    "Tema",
+    "Tema"
+  ],
+  "This runs third-party software which may change files and settings. Save your work first. AppUninstaller cannot undo the publisher's uninstall.": [
+    "Запускается сторонняя программа, которая может изменить файлы и настройки. Сначала сохраните работу. AppUninstaller не может отменить удаление издателем.",
+    "Cette action lance un logiciel tiers qui peut modifier les fichiers et paramètres. Enregistrez votre travail. AppUninstaller ne peut pas annuler la désinstallation de l’éditeur.",
+    "Hierdurch wird Fremdsoftware gestartet, die Dateien und Einstellungen ändern kann. Speichern Sie Ihre Arbeit zuerst. AppUninstaller kann die Deinstallation des Herstellers nicht rückgängig machen.",
+    "Esto ejecuta software de terceros que puede cambiar archivos y ajustes. Guarda tu trabajo primero. AppUninstaller no puede deshacer la desinstalación del editor.",
+    "Questa azione avvia software di terzi che può modificare file e impostazioni. Salva prima il tuo lavoro. AppUninstaller non può annullare la disinstallazione dell’autore."
+  ],
+  "Unable to verify removal": [
+    "Не удалось проверить удаление",
+    "Impossible de vérifier la désinstallation",
+    "Deinstallation kann nicht geprüft werden",
+    "No se puede verificar la desinstalación",
+    "Impossibile verificare la disinstallazione"
+  ],
+  "Uncertain ownership and unsupported command formats are refused. If the uninstaller requires administrator permission, an explicit retry opens Windows UAC. No automatic elevation or registry cleaning.": [
+    "Неясная принадлежность и неподдерживаемые команды отклоняются. Если нужны права администратора, отдельный повтор открывает Windows UAC. Автоматического повышения прав и очистки реестра нет.",
+    "Les appartenances incertaines et formats de commande non pris en charge sont refusés. Une nouvelle tentative explicite ouvre Windows UAC si nécessaire. Aucune élévation automatique ni nettoyage du registre.",
+    "Unklare Zuordnungen und nicht unterstützte Befehle werden abgelehnt. Bei erforderlichen Administratorrechten öffnet ein bewusster Wiederholungsversuch Windows UAC. Keine automatische Rechteerhöhung oder Registry-Bereinigung.",
+    "Se rechazan pertenencias inciertas y comandos no admitidos. Si hacen falta permisos de administrador, un reintento explícito abre Windows UAC. Sin elevación automática ni limpieza del registro.",
+    "Appartenenze incerte e comandi non supportati vengono rifiutati. Se servono permessi di amministratore, un nuovo tentativo esplicito apre Windows UAC. Nessuna elevazione automatica o pulizia del registro."
+  ],
+  "Uninstalling…": [
+    "Удаление…",
+    "Désinstallation…",
+    "Deinstallation läuft…",
+    "Desinstalando…",
+    "Disinstallazione…"
+  ],
+  "Unknown publisher": [
+    "Неизвестный издатель",
+    "Éditeur inconnu",
+    "Unbekannter Hersteller",
+    "Editor desconocido",
+    "Autore sconosciuto"
+  ],
+  "Update available": [
+    "Доступно обновление",
+    "Mise à jour disponible",
+    "Update verfügbar",
+    "Actualización disponible",
+    "Aggiornamento disponibile"
+  ],
+  "Update operations are paused while a removal is being observed.": [
+    "Обновления приостановлены во время наблюдения за удалением.",
+    "Les mises à jour sont suspendues pendant la surveillance d’une désinstallation.",
+    "Updates sind während der Deinstallationsbeobachtung angehalten.",
+    "Las actualizaciones están pausadas durante el seguimiento de una desinstalación.",
+    "Gli aggiornamenti sono sospesi durante l’osservazione di una disinstallazione."
+  ],
+  "Update {0}": [
+    "Обновление {0}",
+    "Mise à jour {0}",
+    "Update {0}",
+    "Actualización {0}",
+    "Aggiornamento {0}"
+  ],
+  "Updates": [
+    "Обновления",
+    "Mises à jour",
+    "Updates",
+    "Actualizaciones",
+    "Aggiornamenti"
+  ],
+  "User data storage unavailable. Settings and quarantine are disabled.": [
+    "Хранилище пользовательских данных недоступно. Настройки и карантин отключены.",
+    "Le stockage utilisateur est indisponible. Les paramètres et la quarantaine sont désactivés.",
+    "Benutzerspeicher nicht verfügbar. Einstellungen und Quarantäne sind deaktiviert.",
+    "El almacenamiento de usuario no está disponible. Los ajustes y la cuarentena están desactivados.",
+    "Archivio dati utente non disponibile. Impostazioni e quarantena sono disabilitate."
+  ],
+  "Verified download ready. Restart installs the update after this process exits.": [
+    "Проверенная загрузка готова. Перезапуск установит обновление после закрытия процесса.",
+    "Le téléchargement vérifié est prêt. Le redémarrage installera la mise à jour après la fermeture du processus.",
+    "Der geprüfte Download ist bereit. Ein Neustart installiert das Update nach dem Beenden dieses Prozesses.",
+    "La descarga verificada está lista. Reiniciar instalará la actualización tras cerrar este proceso.",
+    "Download verificato pronto. Il riavvio installerà l’aggiornamento dopo la chiusura di questo processo."
+  ],
+  "Version": [
+    "Версия",
+    "Version",
+    "Version",
+    "Versión",
+    "Versione"
+  ],
+  "Version {0} is available.": [
+    "Доступна версия {0}.",
+    "La version {0} est disponible.",
+    "Version {0} ist verfügbar.",
+    "La versión {0} está disponible.",
+    "È disponibile la versione {0}."
+  ],
+  "Windows still lists this app. Watching for its registration to disappear.": [
+    "Приложение ещё зарегистрировано в Windows. Ожидаем исчезновения регистрации.",
+    "Windows répertorie encore cette application. Sa disparition du registre est surveillée.",
+    "Windows führt diese Anwendung weiterhin auf. Das Verschwinden ihrer Registrierung wird beobachtet.",
+    "Windows aún muestra esta aplicación. Se está esperando a que desaparezca su registro.",
+    "Windows elenca ancora questa applicazione. Si attende la scomparsa della registrazione."
+  ],
+  "{0} apps shown": [
+    "Показано приложений: {0}",
+    "Applications affichées : {0}",
+    "{0} Anwendungen angezeigt",
+    "{0} aplicaciones mostradas",
+    "{0} applicazioni mostrate"
+  ],
+  "{0} files and folders · journal {1}": [
+    "Файлов и папок: {0} · журнал {1}",
+    "{0} fichiers et dossiers · journal {1}",
+    "{0} Dateien und Ordner · Protokoll {1}",
+    "{0} archivos y carpetas · registro {1}",
+    "{0} file e cartelle · registro {1}"
+  ],
+  "{0} installed · {1} removed": [
+    "Установлено: {0} · удалено: {1}",
+    "{0} installées · {1} désinstallées",
+    "{0} installiert · {1} entfernt",
+    "{0} instaladas · {1} desinstaladas",
+    "{0} installate · {1} rimosse"
+  ],
+  "{0} is registered again; it is kept in the list.": [
+    "{0} снова зарегистрировано и остаётся в списке.",
+    "{0} est de nouveau enregistrée et reste dans la liste.",
+    "{0} ist wieder registriert und bleibt in der Liste.",
+    "{0} vuelve a estar registrada y permanece en la lista.",
+    "{0} è nuovamente registrata e resta nell’elenco."
+  ],
+  "{0} moved into reversible quarantine. Disk space has not been reclaimed.": [
+    "{0} перемещено в обратимый карантин. Место на диске не освобождено.",
+    "{0} a été déplacée en quarantaine réversible. Aucun espace disque n’a été libéré.",
+    "{0} wurde in umkehrbare Quarantäne verschoben. Es wurde kein Speicherplatz freigegeben.",
+    "{0} se ha movido a cuarentena reversible. No se ha liberado espacio en disco.",
+    "{0} è stata spostata nella quarantena reversibile. Lo spazio su disco non è stato liberato."
+  ],
+  "{0} unchanged files and folders · {1}": [
+    "Неизменённых файлов и папок: {0} · {1}",
+    "{0} fichiers et dossiers inchangés · {1}",
+    "{0} unveränderte Dateien und Ordner · {1}",
+    "{0} archivos y carpetas sin cambios · {1}",
+    "{0} file e cartelle invariati · {1}"
+  ],
+  "Reading uninstall registrations…": [
+    "Чтение регистраций удаления…",
+    "Lecture des inscriptions de désinstallation…",
+    "Deinstallationsregistrierungen werden gelesen…",
+    "Leyendo registros de desinstalación…",
+    "Lettura delle registrazioni di disinstallazione…"
+  ],
+  "No check completed in this session.": [
+    "В этом сеансе проверка ещё не выполнялась.",
+    "Aucune vérification terminée pendant cette session.",
+    "In dieser Sitzung wurde noch keine Prüfung abgeschlossen.",
+    "No se ha completado ninguna comprobación en esta sesión.",
+    "Nessun controllo completato in questa sessione."
+  ],
+  "Choose an application to inspect its registered removal action.": [
+    "Выберите приложение для проверки зарегистрированного действия удаления.",
+    "Choisissez une application pour examiner son action de désinstallation enregistrée.",
+    "Wählen Sie eine Anwendung, um ihre registrierte Deinstallationsaktion zu prüfen.",
+    "Elige una aplicación para revisar su acción de desinstalación registrada.",
+    "Scegli un’applicazione per esaminare l’azione di rimozione registrata."
+  ],
+  "Inventory refreshed.": [
+    "Список обновлён.",
+    "Inventaire actualisé.",
+    "Liste aktualisiert.",
+    "Inventario actualizado.",
+    "Inventario aggiornato."
+  ],
+  "Review the registered command before launching the uninstaller.": [
+    "Проверьте зарегистрированную команду перед запуском удаления.",
+    "Examinez la commande enregistrée avant de lancer la désinstallation.",
+    "Prüfen Sie den registrierten Befehl vor dem Start der Deinstallation.",
+    "Revisa el comando registrado antes de iniciar el desinstalador.",
+    "Controlla il comando registrato prima di avviare la disinstallazione."
+  ],
+  "Review every path and explanation, then explicitly select the folder.": [
+    "Проверьте каждый путь и обоснование, затем явно выберите папку.",
+    "Examinez chaque chemin et explication, puis sélectionnez explicitement le dossier.",
+    "Prüfen Sie jeden Pfad und jede Begründung und wählen Sie dann den Ordner ausdrücklich aus.",
+    "Revisa cada ruta y explicación y luego selecciona expresamente la carpeta.",
+    "Controlla ogni percorso e spiegazione, poi seleziona esplicitamente la cartella."
+  ],
+  "No remaining installation folder was found.": [
+    "Оставшаяся папка установки не найдена.",
+    "Aucun dossier d’installation restant n’a été trouvé.",
+    "Kein verbleibender Installationsordner gefunden.",
+    "No se ha encontrado ninguna carpeta de instalación restante.",
+    "Nessuna cartella di installazione residua trovata."
+  ],
+  "Original folder restored. This does not reinstall the application.": [
+    "Исходная папка восстановлена. Это не переустанавливает приложение.",
+    "Dossier d’origine restauré. L’application n’est pas réinstallée.",
+    "Ursprünglicher Ordner wiederhergestellt. Die Anwendung wird dadurch nicht neu installiert.",
+    "Carpeta original restaurada. Esto no reinstala la aplicación.",
+    "Cartella originale ripristinata. L’applicazione non viene reinstallata."
+  ],
+  "Settings saved.": [
+    "Настройки сохранены.",
+    "Paramètres enregistrés.",
+    "Einstellungen gespeichert.",
+    "Ajustes guardados.",
+    "Impostazioni salvate."
+  ],
+  "Checking the public stable release…": [
+    "Проверка общедоступной стабильной версии…",
+    "Vérification de la version stable publique…",
+    "Öffentliche stabile Version wird geprüft…",
+    "Comprobando la versión estable pública…",
+    "Verifica della versione stabile pubblica…"
+  ],
+  "You are up to date for the stable channel.": [
+    "Установлена последняя стабильная версия.",
+    "Vous disposez de la dernière version stable.",
+    "Sie verwenden die aktuelle stabile Version.",
+    "Tienes la última versión del canal estable.",
+    "Hai la versione più recente del canale stabile."
+  ],
+  "Update downloaded and SHA-256 verified. Restart to install when you are ready.": [
+    "Обновление загружено и проверено по SHA-256. Перезапустите для установки, когда будете готовы.",
+    "Mise à jour téléchargée et SHA-256 vérifié. Redémarrez pour l’installer quand vous le souhaitez.",
+    "Update heruntergeladen und SHA-256 geprüft. Starten Sie zur Installation neu, wenn Sie bereit sind.",
+    "Actualización descargada y SHA-256 verificado. Reinicia para instalar cuando quieras.",
+    "Aggiornamento scaricato e SHA-256 verificato. Riavvia per installarlo quando vuoi."
+  ],
+  "Action could not be completed. Review the error above.": [
+    "Не удалось выполнить действие. Проверьте ошибку выше.",
+    "L’action n’a pas pu être terminée. Consultez l’erreur ci-dessus.",
+    "Die Aktion konnte nicht abgeschlossen werden. Prüfen Sie den Fehler oben.",
+    "No se pudo completar la acción. Revisa el error anterior.",
+    "Impossibile completare l’azione. Controlla l’errore sopra."
+  ],
+  "Refreshing installed applications…": [
+    "Обновление списка приложений…",
+    "Actualisation des applications installées…",
+    "Installierte Anwendungen werden aktualisiert…",
+    "Actualizando las aplicaciones instaladas…",
+    "Aggiornamento delle applicazioni installate…"
+  ],
+  "Requesting administrator permission in Windows…": [
+    "Запрос прав администратора в Windows…",
+    "Demande d’autorisation administrateur à Windows…",
+    "Administratorrechte werden in Windows angefordert…",
+    "Solicitando permisos de administrador en Windows…",
+    "Richiesta dei permessi di amministratore in Windows…"
+  ],
+  "Validating registration and capturing bounded ownership evidence…": [
+    "Проверка регистрации и сбор ограниченных доказательств принадлежности…",
+    "Validation de l’inscription et collecte limitée des preuves d’appartenance…",
+    "Registrierung wird geprüft und begrenzte Zuordnungsnachweise werden erfasst…",
+    "Validando el registro y recopilando pruebas limitadas de pertenencia…",
+    "Convalida della registrazione e raccolta limitata delle prove di appartenenza…"
+  ],
+  "Checking registration removal and unchanged ownership evidence…": [
+    "Проверка удаления регистрации и неизменности доказательств принадлежности…",
+    "Vérification de la suppression de l’inscription et de l’intégrité des preuves…",
+    "Entfernte Registrierung und unveränderte Zuordnungsnachweise werden geprüft…",
+    "Comprobando la eliminación del registro y la integridad de las pruebas…",
+    "Verifica della rimozione della registrazione e dell’integrità delle prove…"
+  ],
+  "Revalidating the preview and moving the selected folder to quarantine…": [
+    "Повторная проверка и перемещение выбранной папки в карантин…",
+    "Nouvelle validation de l’aperçu et mise en quarantaine du dossier sélectionné…",
+    "Vorschau wird erneut geprüft und ausgewählter Ordner in Quarantäne verschoben…",
+    "Validando de nuevo la vista previa y moviendo la carpeta a cuarentena…",
+    "Nuova convalida dell’anteprima e spostamento della cartella in quarantena…"
+  ],
+  "Saving settings…": [
+    "Сохранение настроек…",
+    "Enregistrement des paramètres…",
+    "Einstellungen werden gespeichert…",
+    "Guardando ajustes…",
+    "Salvataggio delle impostazioni…"
+  ],
+  "Checking for updates…": [
+    "Проверка обновлений…",
+    "Recherche de mises à jour…",
+    "Updates werden gesucht…",
+    "Buscando actualizaciones…",
+    "Ricerca aggiornamenti…"
+  ],
+  "Downloading and verifying update…": [
+    "Загрузка и проверка обновления…",
+    "Téléchargement et vérification de la mise à jour…",
+    "Update wird heruntergeladen und geprüft…",
+    "Descargando y verificando la actualización…",
+    "Download e verifica dell’aggiornamento…"
+  ],
+  "Starting replacement helper…": [
+    "Запуск помощника замены…",
+    "Lancement de l’assistant de remplacement…",
+    "Austauschhelfer wird gestartet…",
+    "Iniciando el asistente de sustitución…",
+    "Avvio dell’assistente di sostituzione…"
+  ],
+  "Starting the registered uninstaller and checking its registration…": [
+    "Запуск зарегистрированной программы удаления и проверка регистрации…",
+    "Lancement du programme de désinstallation et vérification de son inscription…",
+    "Registriertes Deinstallationsprogramm wird gestartet und Registrierung geprüft…",
+    "Iniciando el desinstalador registrado y comprobando su registro…",
+    "Avvio del programma di disinstallazione e verifica della registrazione…"
+  ],
+  "Validating quarantine and restoring its original folder…": [
+    "Проверка карантина и восстановление исходной папки…",
+    "Validation de la quarantaine et restauration du dossier d’origine…",
+    "Quarantäne wird geprüft und ursprünglicher Ordner wiederhergestellt…",
+    "Validando la cuarentena y restaurando la carpeta original…",
+    "Convalida della quarantena e ripristino della cartella originale…"
+  ],
+  "Stopping removal observation…": [
+    "Остановка наблюдения за удалением…",
+    "Arrêt de la surveillance de désinstallation…",
+    "Deinstallationsbeobachtung wird beendet…",
+    "Deteniendo el seguimiento de desinstalación…",
+    "Interruzione dell’osservazione della disinstallazione…"
+  ],
+  "{0}: administrator request canceled. Nothing was launched.": [
+    "{0}: запрос прав администратора отменён. Ничего не запущено.",
+    "{0} : demande d’administration annulée. Rien n’a été lancé.",
+    "{0}: Administratoranfrage abgebrochen. Es wurde nichts gestartet.",
+    "{0}: solicitud de administrador cancelada. No se ha iniciado nada.",
+    "{0}: richiesta di amministratore annullata. Non è stato avviato nulla."
+  ],
+  "{0}: administrator permission is needed. Nothing was launched.": [
+    "{0}: требуются права администратора. Ничего не запущено.",
+    "{0} : autorisation administrateur requise. Rien n’a été lancé.",
+    "{0}: Administratorrechte sind erforderlich. Es wurde nichts gestartet.",
+    "{0}: se requieren permisos de administrador. No se ha iniciado nada.",
+    "{0}: sono necessari i permessi di amministratore. Non è stato avviato nulla."
+  ],
+  "{0}: publisher uninstaller is running. Status is checked automatically.": [
+    "{0}: программа удаления издателя работает. Состояние проверяется автоматически.",
+    "{0} : le programme de désinstallation de l’éditeur est actif. Son état est vérifié automatiquement.",
+    "{0}: Das Deinstallationsprogramm des Herstellers läuft. Der Status wird automatisch geprüft.",
+    "{0}: el desinstalador del editor está en ejecución. El estado se comprueba automáticamente.",
+    "{0}: il programma di disinstallazione dell’autore è in esecuzione. Lo stato viene controllato automaticamente."
+  ],
+  "{0}: watching its Windows registration. Review the issue above; removal is not confirmed.": [
+    "{0}: наблюдение за регистрацией Windows. Проверьте проблему выше; удаление не подтверждено.",
+    "{0} : surveillance de l’inscription Windows. Consultez le problème ci-dessus ; la désinstallation n’est pas confirmée.",
+    "{0}: Die Windows-Registrierung wird beobachtet. Prüfen Sie das Problem oben; die Deinstallation ist nicht bestätigt.",
+    "{0}: siguiendo su registro de Windows. Revisa el problema anterior; la desinstalación no está confirmada.",
+    "{0}: osservazione della registrazione Windows. Controlla il problema sopra; la disinstallazione non è confermata."
+  ],
+  "{0}: waiting for Windows to confirm removal (publisher exit code {1}).": [
+    "{0}: ожидание подтверждения удаления Windows (код завершения издателя {1}).",
+    "{0} : en attente de confirmation Windows (code de sortie de l’éditeur {1}).",
+    "{0}: Warten auf Windows-Bestätigung der Deinstallation (Hersteller-Exitcode {1}).",
+    "{0}: esperando la confirmación de Windows (código de salida del editor {1}).",
+    "{0}: in attesa della conferma di Windows (codice di uscita dell’autore {1})."
+  ],
+  "{0}: waiting for Windows to confirm removal.": [
+    "{0}: ожидание подтверждения удаления Windows.",
+    "{0} : en attente de confirmation de la désinstallation par Windows.",
+    "{0}: Warten auf Windows-Bestätigung der Deinstallation.",
+    "{0}: esperando a que Windows confirme la desinstalación.",
+    "{0}: in attesa che Windows confermi la disinstallazione."
+  ],
+  "{0}: removal cannot be verified. The item is kept in the list.": [
+    "{0}: удаление невозможно проверить. Запись остаётся в списке.",
+    "{0} : désinstallation impossible à vérifier. L’élément reste dans la liste.",
+    "{0}: Die Deinstallation kann nicht geprüft werden. Der Eintrag bleibt in der Liste.",
+    "{0}: no se puede verificar la desinstalación. El elemento permanece en la lista.",
+    "{0}: disinstallazione non verificabile. L’elemento resta nell’elenco."
+  ],
+  "{0}: observation stopped without confirmed removal. Review the registered action again or refresh.": [
+    "{0}: наблюдение остановлено без подтверждения удаления. Снова проверьте действие или обновите список.",
+    "{0} : surveillance arrêtée sans confirmation de désinstallation. Examinez à nouveau l’action ou actualisez.",
+    "{0}: Beobachtung ohne bestätigte Deinstallation beendet. Prüfen Sie die Aktion erneut oder aktualisieren Sie die Liste.",
+    "{0}: seguimiento detenido sin confirmar la desinstalación. Revisa de nuevo la acción o actualiza.",
+    "{0}: osservazione interrotta senza conferma della disinstallazione. Ricontrolla l’azione o aggiorna."
+  ],
+  "{0} is no longer listed in Windows. Its publisher uninstaller is still running.": [
+    "{0} больше не зарегистрировано в Windows. Программа удаления издателя ещё работает.",
+    "{0} n’est plus répertoriée dans Windows. Le programme de désinstallation est encore actif.",
+    "{0} ist nicht mehr in Windows aufgeführt. Das Deinstallationsprogramm läuft noch.",
+    "{0} ya no aparece en Windows. Su desinstalador aún está en ejecución.",
+    "{0} non compare più in Windows. Il programma di disinstallazione è ancora in esecuzione."
+  ],
+  "{0} is no longer listed in Windows. Restart required; leftover review is disabled.": [
+    "{0} больше не зарегистрировано в Windows. Нужна перезагрузка; проверка остатков отключена.",
+    "{0} n’est plus répertoriée dans Windows. Redémarrage requis ; l’examen des restes est désactivé.",
+    "{0} ist nicht mehr in Windows aufgeführt. Neustart erforderlich; die Prüfung von Resten ist deaktiviert.",
+    "{0} ya no aparece en Windows. Es necesario reiniciar; la revisión de restos está desactivada.",
+    "{0} non compare più in Windows. Serve un riavvio; l’esame dei residui è disabilitato."
+  ],
+  "{0} removed from the installed-app list. Leftover review remains a separate action.": [
+    "{0} удалено из списка установленных. Проверка остатков выполняется отдельно.",
+    "{0} a été retirée des applications installées. L’examen des restes reste une action séparée.",
+    "{0} wurde aus der Anwendungsliste entfernt. Die Prüfung von Resten bleibt eine separate Aktion.",
+    "{0} se ha eliminado de la lista de instaladas. La revisión de restos sigue siendo una acción independiente.",
+    "{0} è stata rimossa dall’elenco delle installate. L’esame dei residui resta un’azione separata."
+  ],
+  "Current user": [
+    "Текущий пользователь",
+    "Utilisateur actuel",
+    "Aktueller Benutzer",
+    "Usuario actual",
+    "Utente attuale"
+  ],
+  "All users": [
+    "Все пользователи",
+    "Tous les utilisateurs",
+    "Alle Benutzer",
+    "Todos los usuarios",
+    "Tutti gli utenti"
+  ],
+  "Exact installation directory recorded in the uninstall registration.": [
+    "Точная папка установки указана в регистрации удаления.",
+    "Le dossier d’installation exact figure dans l’inscription de désinstallation.",
+    "Der genaue Installationsordner ist in der Deinstallationsregistrierung vermerkt.",
+    "El directorio exacto de instalación figura en el registro de desinstalación.",
+    "La cartella di installazione esatta è riportata nella registrazione di disinstallazione."
+  ],
+  "Folder name exactly matches the registered application name.": [
+    "Название папки точно совпадает с зарегистрированным названием приложения.",
+    "Le nom du dossier correspond exactement au nom enregistré de l’application.",
+    "Der Ordnername stimmt genau mit dem registrierten Anwendungsnamen überein.",
+    "El nombre de la carpeta coincide exactamente con el nombre registrado de la aplicación.",
+    "Il nome della cartella corrisponde esattamente al nome registrato dell’applicazione."
+  ],
+  "Registered uninstaller was inside this folder before removal.": [
+    "Зарегистрированная программа удаления находилась в этой папке до удаления.",
+    "Le programme de désinstallation enregistré se trouvait dans ce dossier avant la suppression.",
+    "Das registrierte Deinstallationsprogramm lag vor der Entfernung in diesem Ordner.",
+    "El desinstalador registrado estaba en esta carpeta antes de la eliminación.",
+    "Il programma di disinstallazione registrato si trovava in questa cartella prima della rimozione."
+  ],
+  "No overlapping application, shared root, document folder or reparse point was found.": [
+    "Пересекающихся приложений, общих корней, папок документов и точек повторной обработки не найдено.",
+    "Aucune application superposée, racine partagée, dossier de documents ou point d’analyse n’a été trouvé.",
+    "Keine überlappende Anwendung, gemeinsame Wurzel, Dokumentenordner oder Analysepunkt gefunden.",
+    "No se ha encontrado ninguna aplicación superpuesta, raíz compartida, carpeta de documentos ni punto de reanálisis.",
+    "Non sono state trovate applicazioni sovrapposte, radici condivise, cartelle documenti o punti di analisi."
+  ],
+  "Each proposed file must match its SHA-256 captured before uninstall.": [
+    "Каждый предлагаемый файл должен совпадать с SHA-256, сохранённым до удаления.",
+    "Chaque fichier proposé doit correspondre au SHA-256 enregistré avant la désinstallation.",
+    "Jede vorgeschlagene Datei muss zum vor der Deinstallation erfassten SHA-256 passen.",
+    "Cada archivo propuesto debe coincidir con su SHA-256 registrado antes de desinstalar.",
+    "Ogni file proposto deve corrispondere allo SHA-256 raccolto prima della disinstallazione."
+  ],
+  "Windows Installer removal for the registered product code; interactive UI, no automatic restart.": [
+    "Удаление Windows Installer по зарегистрированному коду продукта; интерактивный интерфейс, без автоматической перезагрузки.",
+    "Désinstallation Windows Installer avec le code produit enregistré ; interface interactive, sans redémarrage automatique.",
+    "Windows-Installer-Deinstallation für den registrierten Produktcode; interaktive Oberfläche, kein automatischer Neustart.",
+    "Desinstalación de Windows Installer para el código de producto registrado; interfaz interactiva, sin reinicio automático.",
+    "Rimozione con Windows Installer per il codice prodotto registrato; interfaccia interattiva, nessun riavvio automatico."
+  ],
+  "Runs the exact registered executable with its registered arguments, without a command shell. Review the publisher and path before continuing.": [
+    "Запускает точный зарегистрированный файл с указанными аргументами без командной оболочки. Проверьте издателя и путь перед продолжением.",
+    "Lance l’exécutable enregistré avec ses arguments, sans interpréteur de commandes. Vérifiez l’éditeur et le chemin avant de continuer.",
+    "Startet die genaue registrierte Programmdatei mit ihren Argumenten ohne Befehlsshell. Prüfen Sie Hersteller und Pfad, bevor Sie fortfahren.",
+    "Ejecuta el archivo registrado con sus argumentos, sin intérprete de comandos. Revisa el editor y la ruta antes de continuar.",
+    "Avvia l’eseguibile registrato con i relativi argomenti, senza shell dei comandi. Controlla autore e percorso prima di continuare."
+  ],
+  "Isolated preview · sample data · removal and update actions disabled": [
+    "Изолированный просмотр · пример данных · удаление и обновления отключены",
+    "Aperçu isolé · exemples de données · désinstallation et mises à jour désactivées",
+    "Isolierte Vorschau · Beispieldaten · Entfernung und Updates deaktiviert",
+    "Vista previa aislada · datos de ejemplo · eliminación y actualizaciones desactivadas",
+    "Anteprima isolata · dati di esempio · rimozione e aggiornamenti disabilitati"
+  ],
+  "Updates have not been checked in this isolated preview.": [
+    "В этом изолированном просмотре обновления не проверялись.",
+    "Les mises à jour n’ont pas été vérifiées dans cet aperçu isolé.",
+    "In dieser isolierten Vorschau wurden keine Updates geprüft.",
+    "No se han buscado actualizaciones en esta vista previa aislada.",
+    "Gli aggiornamenti non sono stati controllati in questa anteprima isolata."
+  ],
+  "Exact folder recorded in the uninstall registration before removal.": [
+    "Точная папка указана в регистрации удаления до удаления.",
+    "Le dossier exact était enregistré avant la désinstallation.",
+    "Der genaue Ordner wurde vor der Entfernung in der Registrierung erfasst.",
+    "La carpeta exacta figuraba en el registro antes de desinstalar.",
+    "La cartella esatta era riportata nella registrazione prima della rimozione."
+  ],
+  "Folder name matches the app and its registered uninstaller was inside it.": [
+    "Название папки совпадает с приложением, а программа удаления была внутри.",
+    "Le nom du dossier correspond à l’application et son programme de désinstallation s’y trouvait.",
+    "Der Ordnername passt zur Anwendung und das Deinstallationsprogramm lag darin.",
+    "El nombre de la carpeta coincide con la aplicación y su desinstalador estaba dentro.",
+    "Il nome della cartella corrisponde all’applicazione e il programma di disinstallazione era al suo interno."
+  ],
+  "No other app registration uses this folder.": [
+    "Другие зарегистрированные приложения не используют эту папку.",
+    "Aucune autre application enregistrée n’utilise ce dossier.",
+    "Keine andere Anwendungsregistrierung nutzt diesen Ordner.",
+    "Ninguna otra aplicación registrada utiliza esta carpeta.",
+    "Nessun’altra applicazione registrata utilizza questa cartella."
+  ],
+  "Remaining files match their original SHA-256 fingerprints.": [
+    "Оставшиеся файлы совпадают с исходными отпечатками SHA-256.",
+    "Les fichiers restants correspondent à leurs empreintes SHA-256 d’origine.",
+    "Die verbleibenden Dateien stimmen mit den ursprünglichen SHA-256-Werten überein.",
+    "Los archivos restantes coinciden con sus huellas SHA-256 originales.",
+    "I file residui corrispondono alle impronte SHA-256 originali."
+  ],
+  "No registered installation directory; ownership cannot be established": [
+    "Папка установки не зарегистрирована; невозможно подтвердить принадлежность",
+    "Aucun dossier d’installation enregistré ; appartenance impossible à établir",
+    "Kein Installationsordner registriert; Zuordnung nicht nachweisbar",
+    "No hay directorio de instalación registrado; no se puede demostrar la pertenencia",
+    "Nessuna cartella di installazione registrata; impossibile dimostrare l’appartenenza"
+  ],
+  "Registered install location is not a directory": [
+    "Зарегистрированный путь установки не является папкой",
+    "L’emplacement d’installation enregistré n’est pas un dossier",
+    "Der registrierte Installationsort ist kein Ordner",
+    "La ubicación de instalación registrada no es una carpeta",
+    "Il percorso di installazione registrato non è una cartella"
+  ],
+  "Installation folder name must exactly match the application name (ignoring punctuation)": [
+    "Название папки должно точно совпадать с названием приложения (без учёта пунктуации)",
+    "Le nom du dossier doit correspondre exactement à celui de l’application (sans la ponctuation)",
+    "Der Ordnername muss genau dem Anwendungsnamen entsprechen (ohne Satzzeichen)",
+    "El nombre de la carpeta debe coincidir con el de la aplicación (sin contar puntuación)",
+    "Il nome della cartella deve corrispondere al nome dell’applicazione (ignorando la punteggiatura)"
+  ],
+  "Shared or protected folder name is excluded": [
+    "Общая или защищённая папка исключена",
+    "Les noms de dossiers partagés ou protégés sont exclus",
+    "Gemeinsame oder geschützte Ordnernamen sind ausgeschlossen",
+    "Se excluyen las carpetas compartidas o protegidas",
+    "I nomi di cartelle condivise o protette sono esclusi"
+  ],
+  "Only direct application folders under Program Files or AppData are eligible; documents and custom locations are excluded": [
+    "Допускаются только папки приложений непосредственно в Program Files или AppData; документы и нестандартные пути исключены",
+    "Seuls les dossiers d’applications directs de Program Files ou AppData sont admis ; documents et chemins personnalisés exclus",
+    "Nur direkte Anwendungsordner in Program Files oder AppData sind zulässig; Dokumente und eigene Speicherorte sind ausgeschlossen",
+    "Solo se admiten carpetas directas en Program Files o AppData; se excluyen documentos y rutas personalizadas",
+    "Sono ammesse solo cartelle dirette in Program Files o AppData; documenti e percorsi personalizzati sono esclusi"
+  ],
+  "Protected/shared location is excluded": [
+    "Защищённое или общее расположение исключено",
+    "Les emplacements protégés ou partagés sont exclus",
+    "Geschützter/gemeinsamer Speicherort ist ausgeschlossen",
+    "Se excluye la ubicación protegida o compartida",
+    "Il percorso protetto o condiviso è escluso"
+  ],
+  "A direct registered uninstaller inside this folder is required as ownership evidence": [
+    "Для подтверждения принадлежности нужна зарегистрированная программа удаления внутри папки",
+    "Un programme de désinstallation enregistré dans ce dossier est nécessaire pour prouver l’appartenance",
+    "Ein direkt registriertes Deinstallationsprogramm in diesem Ordner ist als Zuordnungsnachweis erforderlich",
+    "Se requiere un desinstalador registrado dentro de esta carpeta como prueba de pertenencia",
+    "Serve un programma di disinstallazione registrato all’interno della cartella come prova di appartenenza"
+  ],
+  "Ownership scan exceeds its size limit": [
+    "Размер проверки принадлежности превышает предел",
+    "L’analyse d’appartenance dépasse sa limite de taille",
+    "Die Zuordnungsprüfung überschreitet ihre Größenbegrenzung",
+    "El análisis de pertenencia supera su límite de tamaño",
+    "La scansione di appartenenza supera il limite di dimensione"
+  ],
+  "Ownership scan exceeds 32 directory levels": [
+    "Проверка принадлежности превышает 32 уровня папок",
+    "L’analyse d’appartenance dépasse 32 niveaux de dossiers",
+    "Die Zuordnungsprüfung überschreitet 32 Ordnerebenen",
+    "El análisis de pertenencia supera 32 niveles de carpetas",
+    "La scansione di appartenenza supera 32 livelli di cartelle"
+  ],
+  "Ownership scan exceeds 5,000 entries": [
+    "Проверка принадлежности превышает 5 000 записей",
+    "L’analyse d’appartenance dépasse 5 000 éléments",
+    "Die Zuordnungsprüfung überschreitet 5.000 Einträge",
+    "El análisis de pertenencia supera 5.000 elementos",
+    "La scansione di appartenenza supera 5.000 elementi"
+  ],
+  "The uninstall registration still exists. Finish the publisher's uninstaller and refresh first": [
+    "Регистрация удаления ещё существует. Завершите программу удаления издателя и обновите список",
+    "L’inscription existe encore. Terminez la désinstallation de l’éditeur puis actualisez",
+    "Die Deinstallationsregistrierung besteht noch. Beenden Sie das Herstellerprogramm und aktualisieren Sie die Liste",
+    "El registro de desinstalación aún existe. Completa el desinstalador del editor y actualiza primero",
+    "La registrazione di disinstallazione esiste ancora. Completa il programma dell’autore e aggiorna prima"
+  ],
+  "New or changed files/folders were found after uninstall; this folder cannot be quarantined": [
+    "После удаления найдены новые или изменённые файлы и папки; карантин недоступен",
+    "Des fichiers ou dossiers nouveaux ou modifiés ont été trouvés après désinstallation ; quarantaine impossible",
+    "Nach der Deinstallation wurden neue oder geänderte Dateien/Ordner gefunden; Quarantäne ist nicht möglich",
+    "Se encontraron archivos o carpetas nuevos o modificados tras desinstalar; no se puede poner en cuarentena",
+    "Sono stati trovati file o cartelle nuovi o modificati dopo la disinstallazione; la quarantena non è possibile"
+  ],
+  "Preview is stale; files changed. Review again": [
+    "Просмотр устарел: файлы изменились. Проверьте заново",
+    "L’aperçu est périmé ; les fichiers ont changé. Examinez à nouveau",
+    "Die Vorschau ist veraltet; Dateien wurden geändert. Erneut prüfen",
+    "La vista previa ha caducado; los archivos cambiaron. Revisa de nuevo",
+    "L’anteprima è obsoleta; i file sono cambiati. Esamina di nuovo"
+  ],
+  "Original path already exists. Restore never overwrites files": [
+    "Исходный путь уже существует. Восстановление не перезаписывает файлы",
+    "Le chemin d’origine existe déjà. La restauration n’écrase jamais les fichiers",
+    "Der ursprüngliche Pfad existiert bereits. Die Wiederherstellung überschreibt keine Dateien",
+    "La ruta original ya existe. La restauración nunca sobrescribe archivos",
+    "Il percorso originale esiste già. Il ripristino non sovrascrive mai i file"
+  ],
+  "Quarantined data has changed; manual recovery is required": [
+    "Данные карантина изменились; требуется ручное восстановление",
+    "Les données en quarantaine ont changé ; restauration manuelle nécessaire",
+    "Die Quarantänedaten wurden geändert; manuelle Wiederherstellung erforderlich",
+    "Los datos en cuarentena han cambiado; se requiere recuperación manual",
+    "I dati in quarantena sono cambiati; serve un ripristino manuale"
+  ],
+  "System components are inspection only": [
+    "Системные компоненты доступны только для просмотра",
+    "Les composants système sont uniquement consultables",
+    "Systemkomponenten können nur angesehen werden",
+    "Los componentes del sistema son de solo lectura",
+    "I componenti di sistema possono essere solo esaminati"
+  ],
+  "Finish or stop watching the current removal before starting another removal or update operation": [
+    "Завершите или остановите наблюдение за текущим удалением перед новым удалением или обновлением",
+    "Terminez ou arrêtez la surveillance en cours avant une autre désinstallation ou mise à jour",
+    "Beenden Sie die aktuelle Deinstallation oder deren Beobachtung vor einer weiteren Entfernung oder einem Update",
+    "Termina o detén el seguimiento actual antes de otra desinstalación o actualización",
+    "Completa o interrompi l’osservazione attuale prima di un’altra rimozione o aggiornamento"
+  ],
+  "No registered uninstall command": [
+    "Команда удаления не зарегистрирована",
+    "Aucune commande de désinstallation enregistrée",
+    "Kein Deinstallationsbefehl registriert",
+    "No hay comando de desinstalación registrado",
+    "Nessun comando di disinstallazione registrato"
+  ],
+  "Only direct .exe uninstallers are supported": [
+    "Поддерживаются только программы удаления .exe",
+    "Seuls les programmes de désinstallation .exe directs sont pris en charge",
+    "Nur direkte .exe-Deinstallationsprogramme werden unterstützt",
+    "Solo se admiten desinstaladores .exe directos",
+    "Sono supportati solo programmi di disinstallazione .exe diretti"
+  ],
+  "Registration changed. Prepare and review it again": [
+    "Регистрация изменилась. Подготовьте и проверьте её заново",
+    "L’inscription a changé. Préparez-la et examinez-la à nouveau",
+    "Die Registrierung wurde geändert. Erneut vorbereiten und prüfen",
+    "El registro ha cambiado. Prepáralo y revísalo de nuevo",
+    "La registrazione è cambiata. Preparala ed esaminala di nuovo"
+  ],
+  "Registered uninstaller no longer exists": [
+    "Зарегистрированная программа удаления больше не существует",
+    "Le programme de désinstallation enregistré n’existe plus",
+    "Das registrierte Deinstallationsprogramm existiert nicht mehr",
+    "El desinstalador registrado ya no existe",
+    "Il programma di disinstallazione registrato non esiste più"
+  ],
+  "The worker is busy. Wait for the current operation": [
+    "Рабочий процесс занят. Дождитесь завершения текущей операции",
+    "Le traitement est occupé. Attendez la fin de l’opération en cours",
+    "Der Hintergrundprozess ist beschäftigt. Warten Sie auf den aktuellen Vorgang",
+    "El proceso está ocupado. Espera a que termine la operación actual",
+    "Il processo è occupato. Attendi il completamento dell’operazione attuale"
+  ]
+}

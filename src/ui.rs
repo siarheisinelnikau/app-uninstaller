@@ -1,10 +1,11 @@
 use crate::{
     REPOSITORY, VERSION,
     command::UninstallPlan,
+    i18n::{Language, Message},
     inventory::{InstalledApp, Inventory},
     leftovers::{Candidate, QuarantineRecord, Snapshot},
     removal::{self, Phase, Status},
-    settings::Settings,
+    settings::{Settings, Theme},
     updater::Update,
     worker::{ElevationOffer, Event, Work, Worker},
 };
@@ -54,7 +55,7 @@ pub struct Desktop {
     visible: Vec<usize>,
     filter_dirty: bool,
     busy: bool,
-    message: String,
+    message: Message,
     error: Option<String>,
     confirmation: Option<Confirmation>,
     snapshot: Option<Snapshot>,
@@ -63,9 +64,10 @@ pub struct Desktop {
     restore_confirm: Option<QuarantineRecord>,
     records: Vec<QuarantineRecord>,
     settings: Settings,
+    applied_theme: Theme,
     data: Option<PathBuf>,
     update: Option<Update>,
-    update_status: String,
+    update_status: Message,
     update_busy: bool,
     progress: Option<(u64, u64)>,
     staged: Option<crate::updater::StagedUpdate>,
@@ -266,6 +268,7 @@ impl Desktop {
             restore_confirm: None,
             records: vec![],
             settings: Settings::default(),
+            applied_theme: Theme::default(),
             data: None,
             update: None,
             update_status: "No check completed in this session.".into(),
@@ -323,58 +326,59 @@ impl Desktop {
         {
             self.snapshot = None;
         }
-        self.message = match status.phase {
-            Phase::Waiting if elevation.as_ref().is_some_and(|offer| offer.cancelled) => format!(
-                "{}: administrator request canceled. Nothing was launched.",
-                app.name
+        let (key, values) = match status.phase {
+            Phase::Waiting if elevation.as_ref().is_some_and(|offer| offer.cancelled) => (
+                "{0}: administrator request canceled. Nothing was launched.",
+                vec![app.name.clone()],
             ),
-            Phase::Waiting if elevation.is_some() => format!(
-                "{}: administrator permission is needed. Nothing was launched.",
-                app.name
+            Phase::Waiting if elevation.is_some() => (
+                "{0}: administrator permission is needed. Nothing was launched.",
+                vec![app.name.clone()],
             ),
-            Phase::Running => format!(
-                "{}: publisher uninstaller is running. Status is checked automatically.",
-                app.name
+            Phase::Running => (
+                "{0}: publisher uninstaller is running. Status is checked automatically.",
+                vec![app.name.clone()],
             ),
-            Phase::Waiting if problem.is_some() => format!(
-                "{}: watching its Windows registration. Review the issue above; removal is not confirmed.",
-                app.name
+            Phase::Waiting if problem.is_some() => (
+                "{0}: watching its Windows registration. Review the issue above; removal is not confirmed.",
+                vec![app.name.clone()],
             ),
-            Phase::Waiting => format!(
-                "{}: waiting for Windows to confirm removal{}.",
-                app.name,
-                status
-                    .exit_code
-                    .map(|code| format!(" (publisher exit code {code})"))
-                    .unwrap_or_default()
+            Phase::Waiting if status.exit_code.is_some() => (
+                "{0}: waiting for Windows to confirm removal (publisher exit code {1}).",
+                vec![app.name.clone(), status.exit_code.unwrap().to_string()],
             ),
-            Phase::VerificationUnavailable => format!(
-                "{}: removal cannot be verified. The item is kept in the list.",
-                app.name
+            Phase::Waiting => (
+                "{0}: waiting for Windows to confirm removal.",
+                vec![app.name.clone()],
             ),
-            Phase::Unconfirmed => format!(
-                "{}: observation stopped without confirmed removal. Review the registered action again or refresh.",
-                app.name
+            Phase::VerificationUnavailable => (
+                "{0}: removal cannot be verified. The item is kept in the list.",
+                vec![app.name.clone()],
             ),
-            Phase::Removed if status.process_running => format!(
-                "{} is no longer listed in Windows. Its publisher uninstaller is still running.",
-                app.name
+            Phase::Unconfirmed => (
+                "{0}: observation stopped without confirmed removal. Review the registered action again or refresh.",
+                vec![app.name.clone()],
+            ),
+            Phase::Removed if status.process_running => (
+                "{0} is no longer listed in Windows. Its publisher uninstaller is still running.",
+                vec![app.name.clone()],
             ),
             Phase::Removed
                 if status
                     .exit_code
                     .is_some_and(|code| [3010, 1641].contains(&code)) =>
             {
-                format!(
-                    "{} is no longer listed in Windows. Restart required; leftover review is disabled.",
-                    app.name
+                (
+                    "{0} is no longer listed in Windows. Restart required; leftover review is disabled.",
+                    vec![app.name.clone()],
                 )
             }
-            Phase::Removed => format!(
-                "{} removed from the installed-app list. Leftover review remains a separate action.",
-                app.name
+            Phase::Removed => (
+                "{0} removed from the installed-app list. Leftover review remains a separate action.",
+                vec![app.name.clone()],
             ),
         };
+        self.message = Message::new(key, values);
         self.removal_view = Some(RemovalView {
             app_id: app.id,
             status,
@@ -412,7 +416,7 @@ impl Desktop {
             ctx.request_repaint_after(delay);
         }
     }
-    fn send(&mut self, work: Work, message: &str) {
+    fn send(&mut self, work: Work, message: &'static str) {
         let result = self.worker.as_ref().map_or_else(
             || Err("Actions are disabled in an isolated preview.".into()),
             |worker| worker.send(work),
@@ -424,6 +428,24 @@ impl Desktop {
                 self.message = message.into();
             }
             Err(e) => self.error = Some(e),
+        }
+    }
+    fn save_preferences(&mut self, previous: Settings) {
+        let result = self.worker.as_ref().map_or_else(
+            || Err("Actions are disabled in an isolated preview.".into()),
+            |worker| worker.send(Work::Save(self.settings.clone())),
+        );
+        match result {
+            Ok(()) => {
+                self.saved_settings = Some(previous);
+                self.busy = true;
+                self.error = None;
+                self.message = "Saving settings…".into();
+            }
+            Err(error) => {
+                self.settings = previous;
+                self.error = Some(error);
+            }
         }
     }
     fn set_inventory(&mut self, inventory: Inventory, ctx: &egui::Context) {
@@ -457,8 +479,10 @@ impl Desktop {
                         }
                     }
                     self.snapshot = None;
-                    self.message =
-                        format!("{} is registered again; it is kept in the list.", app.name);
+                    self.message = Message::new(
+                        "{0} is registered again; it is kept in the list.",
+                        vec![app.name.clone()],
+                    );
                 }
             }
         }
@@ -550,9 +574,9 @@ impl Desktop {
                     self.busy = false;
                 }
                 Event::Quarantined(record) => {
-                    self.message = format!(
-                        "{} moved into reversible quarantine. Disk space has not been reclaimed.",
-                        record.app_name
+                    self.message = Message::new(
+                        "{0} moved into reversible quarantine. Disk space has not been reclaimed.",
+                        vec![record.app_name.clone()],
                     );
                     self.records.push(record);
                     self.candidate = None;
@@ -583,8 +607,10 @@ impl Desktop {
                     }
                     match result {
                         Ok(Some(update)) => {
-                            self.update_status =
-                                format!("Version {} is available.", update.version);
+                            self.update_status = Message::new(
+                                "Version {0} is available.",
+                                vec![update.version.to_string()],
+                            );
                             self.update = Some(update);
                         }
                         Ok(None) => {
@@ -593,7 +619,8 @@ impl Desktop {
                             self.update = None;
                         }
                         Err(e) => {
-                            self.update_status = format!("Could not check for updates: {e}");
+                            self.update_status =
+                                Message::new("Could not check for updates: {0}", vec![e]);
                         }
                     }
                 }
@@ -656,20 +683,21 @@ impl Desktop {
         self.filter_dirty = false;
     }
     fn applications(&mut self, _ctx: &egui::Context, ui: &mut egui::Ui) {
-        use crate::design::*;
-        ui.heading("Installed applications");
+        let palette = crate::design::palette(self.settings.theme);
+        let l = self.settings.language;
+        ui.heading(l.text("Installed applications"));
         ui.label(
-            RichText::new(
+            RichText::new(l.text(
                 "Choose an app and review its registered uninstaller before making changes.",
-            )
-            .color(MUTED),
+            ))
+            .color(palette.muted),
         );
         ui.add_space(10.);
         ui.horizontal(|ui| {
             if ui
                 .add(
                     egui::TextEdit::singleline(&mut self.query)
-                        .hint_text("Search by name or publisher")
+                        .hint_text(l.text("Search by name or publisher"))
                         .desired_width(300.),
                 )
                 .changed()
@@ -678,15 +706,15 @@ impl Desktop {
             }
             egui::ComboBox::from_id_salt("sort")
                 .selected_text(match self.sort {
-                    Sort::Name => "Name",
-                    Sort::Publisher => "Publisher",
-                    Sort::Size => "Largest first",
+                    Sort::Name => l.text("Name"),
+                    Sort::Publisher => l.text("Publisher"),
+                    Sort::Size => l.text("Largest first"),
                 })
                 .show_ui(ui, |ui| {
                     for (sort, label) in [
-                        (Sort::Name, "Name"),
-                        (Sort::Publisher, "Publisher"),
-                        (Sort::Size, "Largest first"),
+                        (Sort::Name, l.text("Name")),
+                        (Sort::Publisher, l.text("Publisher")),
+                        (Sort::Size, l.text("Largest first")),
                     ] {
                         if ui.selectable_value(&mut self.sort, sort, label).changed() {
                             self.filter_dirty = true;
@@ -694,7 +722,7 @@ impl Desktop {
                     }
                 });
             if ui
-                .add_enabled(!self.busy, egui::Button::new("Refresh"))
+                .add_enabled(!self.busy, egui::Button::new(l.text("Refresh")))
                 .clicked()
             {
                 self.send(Work::Refresh, "Refreshing installed applications…");
@@ -704,7 +732,7 @@ impl Desktop {
             if ui
                 .checkbox(
                     &mut self.show_system,
-                    "Include system components (view only)",
+                    l.text("Include system components (view only)"),
                 )
                 .changed()
             {
@@ -719,22 +747,24 @@ impl Desktop {
                         .filter(|index| self.removed_rows.contains_key(&self.apps[**index].id))
                         .count();
                     if removed > 0 {
-                        format!(
-                            "{} installed · {} removed",
-                            self.visible.len() - removed,
-                            removed
+                        l.format(
+                            "{0} installed · {1} removed",
+                            &[
+                                (self.visible.len() - removed).to_string(),
+                                removed.to_string(),
+                            ],
                         )
                     } else {
-                        format!("{} apps shown", self.visible.len())
+                        l.format("{0} apps shown", &[self.visible.len().to_string()])
                     }
                 })
                 .small()
-                .color(MUTED),
+                .color(palette.muted),
             );
         });
         ui.add_space(6.);
         if !self.inventory_warnings.is_empty() {
-            ui.colored_label(Color32::from_rgb(150,70,0),"Inventory is incomplete. Review the read errors in Settings before removing an app.");
+            ui.colored_label(ui.visuals().warn_fg_color,l.text("Inventory is incomplete. Review the read errors in Settings before removing an app."));
         }
         ui.columns(2,|columns| {
             egui::ScrollArea::vertical().auto_shrink([false,false]).id_salt("inventory").show_viewport(&mut columns[0],|ui,viewport| {
@@ -756,22 +786,22 @@ impl Desktop {
                     let mut row_ui=ui.new_child(egui::UiBuilder::new().id_salt(&app.id).max_rect(rect).layout(egui::Layout::top_down(egui::Align::Min)));
                     row_ui.set_clip_rect(row_ui.clip_rect().intersect(rect));
                     if let Some(progress)=progress {row_ui.multiply_opacity(progress.fraction);}
-                    let response=egui::Frame::new().fill(if selected {SELECTION} else {Color32::TRANSPARENT}).inner_margin(10.).show(&mut row_ui,|ui| {
+                    let response=egui::Frame::new().fill(if selected {palette.selection} else {Color32::TRANSPARENT}).inner_margin(10.).show(&mut row_ui,|ui| {
                         ui.set_width((width-20.).max(1.));
                         ui.horizontal(|ui| {
                             if let Some(icon)=self.icons.get(&app.id) {ui.image((icon.id(),egui::vec2(30.,30.)));}
                             ui.vertical(|ui| {
                                 ui.spacing_mut().button_padding=egui::vec2(0.,2.);
-                                let mut title=RichText::new(&app.name).strong();if progress.is_some(){title=title.strikethrough().color(MUTED);}
+                                let mut title=RichText::new(&app.name).strong();if progress.is_some(){title=title.strikethrough().color(palette.muted);}
                                 if ui.add(egui::Button::new(title).frame(false).truncate()).clicked(){self.selected=Some(app.id.clone());}
                                 let label=if let Some(progress)=progress {
-                                    if progress.seconds_left>0 {format!("Removed · leaves this list in {}s",progress.seconds_left)}else{"Removed".into()}
+                                    if progress.seconds_left>0 {l.format("Removed · leaves this list in {0}s", &[progress.seconds_left.to_string()])}else{l.text("Removed").to_string()}
                                 }else if let Some(view)=&self.removal_view && view.app_id==app.id && view.elevation.is_some() {
-                                    if view.elevation.as_ref().is_some_and(|offer|offer.cancelled){"Administrator request canceled".into()}else{"Administrator permission needed".into()}
+                                    if view.elevation.as_ref().is_some_and(|offer|offer.cancelled){l.text("Administrator request canceled").into()}else{l.text("Administrator permission needed").into()}
                                 }else if let Some(view)=&self.removal_view && view.app_id==app.id {
-                                    match view.status.phase {Phase::Running=>"Uninstalling…".into(),Phase::Waiting=>"Checking Windows registration…".into(),Phase::VerificationUnavailable=>"Removal cannot be verified".into(),Phase::Unconfirmed=>"Removal not confirmed".into(),Phase::Removed=>"Removed".into()}
-                                }else{format!("{} · {}",if app.publisher.is_empty(){"Unknown publisher"}else{&app.publisher},size(app.estimated_kib.map(|n|n*1024)))};
-                                ui.add(egui::Label::new(RichText::new(label).small().color(if progress.is_some(){ACCENT}else{MUTED})).truncate());
+                                    match view.status.phase {Phase::Running=>l.text("Uninstalling…").into(),Phase::Waiting=>l.text("Checking Windows registration…").into(),Phase::VerificationUnavailable=>l.text("Removal cannot be verified").into(),Phase::Unconfirmed=>l.text("Removal not confirmed").into(),Phase::Removed=>l.text("Removed").to_string()}
+                                }else{format!("{} · {}",if app.publisher.is_empty(){l.text("Unknown publisher")}else{&app.publisher},size(app.estimated_kib.map(|n|n*1024), l))};
+                                ui.add(egui::Label::new(RichText::new(label).small().color(if progress.is_some(){palette.accent_text}else{palette.muted})).truncate());
                             });
                         });
                     });
@@ -779,72 +809,73 @@ impl Desktop {
                 }
             });
             egui::ScrollArea::vertical().auto_shrink([false,false]).id_salt("app-details").show(&mut columns[1],|ui| {
-                egui::Frame::new().fill(SURFACE).inner_margin(20.).show(ui,|ui| {
+                egui::Frame::new().fill(palette.surface).inner_margin(20.).show(ui,|ui| {
                     ui.set_width((ui.available_width()).max(1.));
                     let app=self.apps.iter().find(|a|self.selected.as_ref()==Some(&a.id)).cloned();
                     if let Some(app)=app {
                         ui.heading(&app.name);
-                        ui.label(RichText::new(if app.publisher.is_empty(){"Publisher not supplied"}else{&app.publisher}).color(MUTED));
+                        ui.label(RichText::new(if app.publisher.is_empty(){l.text("Publisher not supplied")}else{&app.publisher}).color(palette.muted));
                         ui.add_space(8.);
                         let elevation=self.removal_view.as_ref().filter(|view|view.app_id==app.id).and_then(|view|view.elevation.clone());
                         if let Some(offer)=&elevation {
-                            ui.label(RichText::new(if offer.cancelled{"Administrator request canceled"}else{"Administrator permission needed"}).color(ACCENT).strong());
-                            ui.label(RichText::new("Run the reviewed uninstaller with administrator permission. Windows will ask for approval; AppUninstaller keeps its current permissions.").small().color(MUTED));
+                            ui.label(RichText::new(if offer.cancelled{l.text("Administrator request canceled")}else{l.text("Administrator permission needed")}).color(palette.accent_text).strong());
+                            ui.label(RichText::new(l.text("Run the reviewed uninstaller with administrator permission. Windows will ask for approval; AppUninstaller keeps its current permissions.")).small().color(palette.muted));
                             ui.horizontal(|ui| {
-                                if ui.add_enabled(!self.busy,egui::Button::new(RichText::new("Run as administrator…").color(Color32::WHITE)).fill(ACCENT)).clicked(){self.send(Work::RetryAsAdministrator(app.id.clone()),"Requesting administrator permission in Windows…");}
+                                if ui.add_enabled(!self.busy,egui::Button::new(RichText::new(l.text("Run as administrator…")).color(Color32::WHITE)).fill(palette.accent)).clicked(){self.send(Work::RetryAsAdministrator(app.id.clone()), "Requesting administrator permission in Windows…");}
                             });
                         }else if let Some(at)=self.removed_rows.get(&app.id) {
                             let progress=removal::row_progress(self.preview_now.unwrap_or_else(Instant::now).saturating_duration_since(*at));
-                            let label=if progress.seconds_left>0 {format!("Removed from installed apps · leaves this list in {}s",progress.seconds_left)}else{"Removed from installed apps".into()};
-                            ui.label(RichText::new(label).color(ACCENT).strong());
-                            if self.snapshot.is_some() && ui.button("Review leftovers").clicked(){self.page=Page::Leftovers;}
+                            let label=if progress.seconds_left>0 {l.format("Removed from installed apps · leaves this list in {0}s", &[progress.seconds_left.to_string()])}else{l.text("Removed from installed apps").into()};
+                            ui.label(RichText::new(label).color(palette.accent_text).strong());
+                            if self.snapshot.is_some() && ui.button(l.text("Review leftovers")).clicked(){self.page=Page::Leftovers;}
                         }else if let Some(view)=&self.removal_view && view.app_id==app.id && view.status.monitoring {
                             let (title,help)=match view.status.phase {
-                                Phase::Running=>("Uninstalling…","Finish any publisher windows. The installed-app registration is checked automatically."),
-                                Phase::VerificationUnavailable=>("Unable to verify removal","The item stays in the list until its registration can be checked."),
-                                _=>("Checking removal…","Windows still lists this app. Watching for its registration to disappear."),
+                                Phase::Running=>(l.text("Uninstalling…"),l.text("Finish any publisher windows. The installed-app registration is checked automatically.")),
+                                Phase::VerificationUnavailable=>(l.text("Unable to verify removal"),l.text("The item stays in the list until its registration can be checked.")),
+                                _=>(l.text("Checking removal…"),l.text("Windows still lists this app. Watching for its registration to disappear.")),
                             };
-                            ui.label(RichText::new(title).color(ACCENT).strong());
-                            ui.label(RichText::new(help).small().color(MUTED));
+                            ui.label(RichText::new(title).color(palette.accent_text).strong());
+                            ui.label(RichText::new(help).small().color(palette.muted));
                         }else{
                             ui.horizontal(|ui| {
                                 let watching=self.removal_view.as_ref().is_some_and(|view|view.status.monitoring);
-                                if ui.add_enabled(!self.busy&&!watching&&!app.system_component&&self.inventory_warnings.is_empty(),egui::Button::new(RichText::new("Review uninstall…").color(Color32::WHITE)).fill(ACCENT)).clicked(){self.send(Work::Prepare(app.clone()),"Validating registration and capturing bounded ownership evidence…");}
+                                if ui.add_enabled(!self.busy&&!watching&&!app.system_component&&self.inventory_warnings.is_empty(),egui::Button::new(RichText::new(l.text("Review uninstall…")).color(Color32::WHITE)).fill(palette.accent)).clicked(){self.send(Work::Prepare(app.clone()), "Validating registration and capturing bounded ownership evidence…");}
                             });
-                            ui.label(RichText::new("Nothing changes until you confirm the registered action.").small().color(MUTED));
+                            ui.label(RichText::new(l.text("Nothing changes until you confirm the registered action.")).small().color(palette.muted));
                         }
                         ui.add_space(12.);
                         let value_width=(ui.available_width()-116.).max(90.);
                         egui::Grid::new("metadata").num_columns(2).min_col_width(96.).max_col_width(value_width).spacing([16.,8.]).show(ui,|ui| {
-                            for (label,value) in [("Version",app.version.clone()),("Size",size(app.estimated_kib.map(|n|n*1024))),("Installed for",format!("{} · {}",app.scope,app.view)),("Folder",app.install_location.as_ref().map(|p|p.display().to_string()).unwrap_or_else(||"Not supplied".into()))] {
-                                ui.add(egui::Label::new(RichText::new(label).color(MUTED)).wrap_mode(egui::TextWrapMode::Extend));
-                                ui.add(egui::Label::new(if value.is_empty(){"Not supplied"}else{&value}).halign(egui::Align::Min).wrap());ui.end_row();
+                            for (label,value) in [(l.text("Version"),app.version.clone()),(l.text("Size"),size(app.estimated_kib.map(|n|n*1024), l)),(l.text("Installed for"),format!("{} · {}",l.text(&app.scope),app.view)),(l.text("Folder"),app.install_location.as_ref().map(|p|p.display().to_string()).unwrap_or_else(||l.text("Not supplied").into()))] {
+                                ui.add(egui::Label::new(RichText::new(label).color(palette.muted)).wrap_mode(egui::TextWrapMode::Extend));
+                                ui.add(egui::Label::new(if value.is_empty(){l.text("Not supplied")}else{&value}).halign(egui::Align::Min).wrap());ui.end_row();
                             }
                         });
-                        ui.add_space(16.);ui.strong(if elevation.is_some(){"Reviewed uninstall command"}else{"Registered uninstall command"});
-                        egui::Frame::new().fill(BACKGROUND).inner_margin(10.).show(ui,|ui| {
+                        ui.add_space(16.);ui.strong(if elevation.is_some(){l.text("Reviewed uninstall command")}else{l.text("Registered uninstall command")});
+                        egui::Frame::new().fill(palette.background).inner_margin(10.).show(ui,|ui| {
                             let command=elevation.as_ref().map(|offer|format!("\"{}\" {}",offer.plan.executable.display(),offer.plan.arguments));
-                            ui.add(egui::Label::new(RichText::new(command.as_deref().unwrap_or(if app.uninstall_string.is_empty(){"Not supplied"}else{&app.uninstall_string})).monospace()).halign(egui::Align::Min).selectable(true).wrap());
+                            ui.add(egui::Label::new(RichText::new(command.as_deref().unwrap_or(if app.uninstall_string.is_empty(){l.text("Not supplied")}else{&app.uninstall_string})).monospace()).halign(egui::Align::Min).selectable(true).wrap());
                         });
                         ui.add_space(10.);
-                        ui.collapsing("How removal and recovery work",|ui| {
-                            ui.label("After uninstalling, review proven leftovers and choose whether to quarantine them. Quarantine is reversible; the publisher’s uninstall is not.");
-                            ui.small("Uncertain ownership and unsupported command formats are refused. If the uninstaller requires administrator permission, an explicit retry opens Windows UAC. No automatic elevation or registry cleaning.");
+                        ui.collapsing(l.text("How removal and recovery work"),|ui| {
+                            ui.label(l.text("After uninstalling, review proven leftovers and choose whether to quarantine them. Quarantine is reversible; the publisher’s uninstall is not."));
+                            ui.small(l.text("Uncertain ownership and unsupported command formats are refused. If the uninstaller requires administrator permission, an explicit retry opens Windows UAC. No automatic elevation or registry cleaning."));
                         });
                     } else {
-                        ui.heading("Select an application");
-                        ui.label("See its publisher, installation folder and registered removal action here.");
+                        ui.heading(l.text("Select an application"));
+                        ui.label(l.text("See its publisher, installation folder and registered removal action here."));
                         ui.add_space(12.);
-                        ui.label("Review → Uninstall → Inspect leftovers → Quarantine if needed");
+                        ui.label(l.text("Review → Uninstall → Inspect leftovers → Quarantine if needed"));
                     }
                 });
             });
         });
     }
     fn leftovers(&mut self, ui: &mut egui::Ui) {
+        let l = self.settings.language;
         let mut action = None;
-        ui.heading("Explainable leftover review");
-        ui.label("Only a proven installation folder can be suggested. Documents, shared locations, custom paths and registry values are excluded. Missing ownership evidence means no cleanup suggestion.");
+        ui.heading(l.text("Explainable leftover review"));
+        ui.label(l.text("Only a proven installation folder can be suggested. Documents, shared locations, custom paths and registry values are excluded. Missing ownership evidence means no cleanup suggestion."));
         if let Some(snapshot) = &self.snapshot {
             ui.add_space(10.);
             ui.strong(&snapshot.app_name);
@@ -852,7 +883,7 @@ impl Desktop {
             if ui
                 .add_enabled(
                     !self.busy,
-                    egui::Button::new("Publisher uninstaller finished · Review leftovers"),
+                    egui::Button::new(l.text("Publisher uninstaller finished · Review leftovers")),
                 )
                 .clicked()
             {
@@ -863,52 +894,54 @@ impl Desktop {
             }
         } else if self.candidate.is_none() {
             ui.add_space(15.);
-            ui.label("No removal session has evidence to review. Start with Review uninstall in Applications. Evidence is kept in memory for this session only.");
+            ui.label(l.text("No removal session has evidence to review. Start with Review uninstall in Applications. Evidence is kept in memory for this session only."));
         }
         if let Some(candidate) = &self.candidate {
             ui.separator();
-            ui.heading("Folder preview");
+            ui.heading(l.text("Folder preview"));
             ui.monospace(candidate.snapshot.root.display().to_string());
             let bytes = candidate.files.values().map(|f| f.bytes).sum();
-            ui.label(format!(
-                "{} unchanged files and folders · {}",
-                candidate.files.len(),
-                size(Some(bytes))
+            ui.label(l.format(
+                "{0} unchanged files and folders · {1}",
+                &[candidate.files.len().to_string(), size(Some(bytes), l)],
             ));
             for evidence in &candidate.snapshot.evidence {
-                ui.label(format!("• {evidence}"));
+                ui.label(format!("• {}", l.text(evidence)));
             }
-            ui.collapsing("Every proposed file/folder and file SHA-256", |ui| {
-                egui::ScrollArea::vertical()
-                    .max_height(200.)
-                    .show(ui, |ui| {
-                        for (path, fingerprint) in &candidate.files {
-                            ui.monospace(path.display().to_string());
-                            if fingerprint.directory {
-                                ui.small("Folder");
-                            } else {
-                                ui.small(format!(
-                                    "{} · {}",
-                                    size(Some(fingerprint.bytes)),
-                                    fingerprint.sha256
-                                ));
+            ui.collapsing(
+                l.text("Every proposed file/folder and file SHA-256"),
+                |ui| {
+                    egui::ScrollArea::vertical()
+                        .max_height(200.)
+                        .show(ui, |ui| {
+                            for (path, fingerprint) in &candidate.files {
+                                ui.monospace(path.display().to_string());
+                                if fingerprint.directory {
+                                    ui.small(l.text("Folder"));
+                                } else {
+                                    ui.small(format!(
+                                        "{} · {}",
+                                        size(Some(fingerprint.bytes), l),
+                                        fingerprint.sha256
+                                    ));
+                                }
                             }
-                        }
-                        if candidate.files.is_empty() {
-                            ui.label("Only the empty folder remains.");
-                        }
-                    });
-            });
+                            if candidate.files.is_empty() {
+                                ui.label(l.text("Only the empty folder remains."));
+                            }
+                        });
+                },
+            );
             ui.add_space(10.);
             ui.checkbox(
                 &mut self.candidate_selected,
-                "I reviewed this folder and select it for reversible quarantine",
+                l.text("I reviewed this folder and select it for reversible quarantine"),
             );
-            ui.label("Quarantine renames the folder beside its original location. It preserves data and uses the same disk space. Restore is available in Quarantine. Access errors leave the original in place.");
+            ui.label(l.text("Quarantine renames the folder beside its original location. It preserves data and uses the same disk space. Restore is available in Quarantine. Access errors leave the original in place."));
             if ui
                 .add_enabled(
                     !self.busy && self.candidate_selected && self.data.is_some(),
-                    egui::Button::new("Quarantine selected folder"),
+                    egui::Button::new(l.text("Quarantine selected folder")),
                 )
                 .clicked()
             {
@@ -923,24 +956,24 @@ impl Desktop {
         }
     }
     fn quarantine(&mut self, ui: &mut egui::Ui) {
-        ui.heading("Recoverable quarantine");
-        ui.label("Quarantined folders remain on the same drive. Restore never overwrites an existing location. Restoring files does not reinstall a program. Permanent deletion is intentionally manual.");
+        let l = self.settings.language;
+        ui.heading(l.text("Recoverable quarantine"));
+        ui.label(l.text("Quarantined folders remain on the same drive. Restore never overwrites an existing location. Restoring files does not reinstall a program. Permanent deletion is intentionally manual."));
         if self.records.is_empty() {
             ui.add_space(15.);
-            ui.label("No quarantined folders.");
+            ui.label(l.text("No quarantined folders."));
         }
         for record in &self.records {
             egui::Frame::group(ui.style()).show(ui, |ui| {
                 ui.strong(&record.app_name);
-                ui.label(format!("Original: {}", record.original.display()));
-                ui.label(format!("Quarantine: {}", record.backup.display()));
-                ui.small(format!(
-                    "{} files and folders · journal {}",
-                    record.files.len(),
-                    record.id
+                ui.label(l.format("Original: {0}", &[record.original.display().to_string()]));
+                ui.label(l.format("Quarantine: {0}", &[record.backup.display().to_string()]));
+                ui.small(l.format(
+                    "{0} files and folders · journal {1}",
+                    &[record.files.len().to_string(), record.id.clone()],
                 ));
                 if ui
-                    .add_enabled(!self.busy, egui::Button::new("Review restore…"))
+                    .add_enabled(!self.busy, egui::Button::new(l.text("Review restore…")))
                     .clicked()
                 {
                     self.restore_confirm = Some(record.clone());
@@ -949,18 +982,50 @@ impl Desktop {
         }
     }
     fn settings(&mut self, ui: &mut egui::Ui) {
+        let l = self.settings.language;
         ui.set_max_width(760.);
         let watching = self
             .removal_view
             .as_ref()
             .is_some_and(|view| view.status.monitoring);
-        ui.heading("Settings & updates");
-        ui.label(format!(
-            "AppUninstaller {VERSION} · Windows x64 portable · MIT license"
+        ui.heading(l.text("Settings & updates"));
+        ui.label(l.format(
+            "AppUninstaller {0} · Windows x64 portable · MIT license",
+            &[VERSION.into()],
         ));
         ui.add_space(10.);
-        ui.strong("Updates");
-        ui.hyperlink_to("Canonical repository", REPOSITORY);
+        let previous_display = self.settings.clone();
+        ui.strong(l.text("Appearance & language"));
+        ui.add_enabled_ui(!self.busy && self.data.is_some(), |ui| {
+            ui.horizontal_wrapped(|ui| {
+                ui.label(l.text("Language"));
+                egui::ComboBox::from_id_salt("display-language")
+                    .selected_text(self.settings.language.native_name())
+                    .show_ui(ui, |ui| {
+                        for language in crate::i18n::LANGUAGES {
+                            ui.selectable_value(
+                                &mut self.settings.language,
+                                language,
+                                language.native_name(),
+                            );
+                        }
+                    });
+            });
+            ui.horizontal_wrapped(|ui| {
+                ui.label(l.text("Theme"));
+                ui.selectable_value(&mut self.settings.theme, Theme::Light, l.text("Light"));
+                ui.selectable_value(&mut self.settings.theme, Theme::Dark, l.text("Dark"));
+            });
+        });
+        ui.small(l.text("Changes apply immediately and are saved for the next launch."));
+        if self.settings.language != previous_display.language
+            || self.settings.theme != previous_display.theme
+        {
+            self.save_preferences(previous_display);
+        }
+        ui.separator();
+        ui.strong(l.text("Updates"));
+        ui.hyperlink_to(l.text("Canonical repository"), REPOSITORY);
         ui.add_space(10.);
         let previous = self.settings.clone();
         if ui
@@ -968,23 +1033,22 @@ impl Desktop {
                 !self.busy && self.data.is_some(),
                 egui::Checkbox::new(
                     &mut self.settings.check_on_startup,
-                    "Check for updates on startup",
+                    l.text("Check for updates on startup"),
                 ),
             )
             .changed()
         {
-            self.saved_settings = Some(previous);
-            self.send(Work::Save(self.settings.clone()), "Saving settings…");
+            self.save_preferences(previous);
         }
-        ui.small("Checks quietly in the background. Turning this off prevents startup requests; manual checking stays available. Downloads and installation require your action.");
-        ui.label(&self.update_status);
+        ui.small(l.text("Checks quietly in the background. Turning this off prevents startup requests; manual checking stays available. Downloads and installation require your action."));
+        ui.label(self.update_status.render(l));
         if watching {
-            ui.small("Update operations are paused while a removal is being observed.");
+            ui.small(l.text("Update operations are paused while a removal is being observed."));
         }
         if ui
             .add_enabled(
                 !self.busy && !self.update_busy && !watching,
-                egui::Button::new("Check for updates"),
+                egui::Button::new(l.text("Check for updates")),
             )
             .clicked()
         {
@@ -993,16 +1057,16 @@ impl Desktop {
         }
         if let Some(update) = self.update.clone() {
             ui.separator();
-            ui.strong(format!("Update {}", update.version));
-            ui.collapsing("Release notes", |ui| {
+            ui.strong(l.format("Update {0}", &[update.version.to_string()]));
+            ui.collapsing(l.text("Release notes"), |ui| {
                 ui.label(&update.notes);
             });
-            ui.label("Download is verified against the release SHA-256 before installation. The existing EXE is retained as a rollback backup. Settings and quarantine records stay in your user profile.");
+            ui.label(l.text("Download is verified against the release SHA-256 before installation. The existing EXE is retained as a rollback backup. Settings and quarantine records stay in your user profile."));
             if self.staged.is_none()
                 && ui
                     .add_enabled(
                         !self.busy && !watching,
-                        egui::Button::new("Download and install"),
+                        egui::Button::new(l.text("Download and install")),
                     )
                     .clicked()
             {
@@ -1013,19 +1077,19 @@ impl Desktop {
             ui.add(
                 egui::ProgressBar::new(done as f32 / total.max(1) as f32).text(format!(
                     "{} / {}",
-                    size(Some(done)),
-                    size(Some(total))
+                    size(Some(done), l),
+                    size(Some(total), l)
                 )),
             );
         }
         if let Some(path) = self.staged.clone() {
-            ui.label(
+            ui.label(l.text(
                 "Verified download ready. Restart installs the update after this process exits.",
-            );
+            ));
             if ui
                 .add_enabled(
                     !self.busy && !watching,
-                    egui::Button::new("Restart and install verified update"),
+                    egui::Button::new(l.text("Restart and install verified update")),
                 )
                 .clicked()
             {
@@ -1033,46 +1097,59 @@ impl Desktop {
             }
         }
         ui.separator();
-        ui.strong("About & local storage");
-        ui.label("CPU rendering · Windows GDI · no graphics API context");
+        ui.strong(l.text("About & local storage"));
+        ui.label(l.text("CPU rendering · Windows GDI · no graphics API context"));
         if let Some(data) = &self.data {
             ui.monospace(data.display().to_string());
         } else {
-            ui.label("User data storage unavailable. Settings and quarantine are disabled.");
-        }
-        ui.small("No telemetry. No registry cleaning. Inventory stays local. Network access is used only for updates.");
-        ui.collapsing("Open-source licenses and bundled font notices", |ui| {
-            static LINES: std::sync::LazyLock<Vec<&'static str>> = std::sync::LazyLock::new(|| {
-                include_str!("../THIRD_PARTY_NOTICES.txt").lines().collect()
-            });
-            egui::ScrollArea::both().max_height(260.).show_rows(
-                ui,
-                16.,
-                LINES.len(),
-                |ui, range| {
-                    for row in range {
-                        ui.monospace(LINES[row]);
-                    }
-                },
+            ui.label(
+                l.text("User data storage unavailable. Settings and quarantine are disabled."),
             );
-        });
+        }
+        ui.small(l.text("No telemetry. No registry cleaning. Inventory stays local. Network access is used only for updates."));
+        ui.collapsing(
+            l.text("Open-source licenses and bundled font notices"),
+            |ui| {
+                static LINES: std::sync::LazyLock<Vec<&'static str>> =
+                    std::sync::LazyLock::new(|| {
+                        include_str!("../THIRD_PARTY_NOTICES.txt").lines().collect()
+                    });
+                egui::ScrollArea::both().max_height(260.).show_rows(
+                    ui,
+                    16.,
+                    LINES.len(),
+                    |ui, range| {
+                        for row in range {
+                            ui.monospace(LINES[row]);
+                        }
+                    },
+                );
+            },
+        );
         for warning in self.warnings.iter().chain(self.inventory_warnings.iter()) {
-            ui.colored_label(Color32::from_rgb(150, 70, 0), warning);
+            ui.colored_label(ui.visuals().warn_fg_color, l.text(warning));
+        }
+    }
+    fn ensure_theme(&mut self, ctx: &egui::Context) {
+        if self.applied_theme != self.settings.theme {
+            crate::design::apply_theme(ctx, self.settings.theme);
+            self.applied_theme = self.settings.theme;
         }
     }
     fn confirmations(&mut self, ctx: &egui::Context) {
+        let l = self.settings.language;
         let mut launch = false;
         let mut cancel = false;
         if let Some(confirm) = &mut self.confirmation {
-            egui::Window::new("Review registered uninstall action").collapsible(false).resizable(true).default_width(640.).show(ctx,|ui| {
-                ui.heading(&confirm.app.name);ui.label(format!("Publisher: {}",confirm.app.publisher));
-                ui.strong("Executable");ui.monospace(confirm.plan.executable.display().to_string());
-                ui.strong("Arguments");ui.monospace(&confirm.plan.arguments);ui.label(&confirm.plan.explanation);
-                if let Some(limitation)=&confirm.limitation {ui.colored_label(Color32::from_rgb(150,70,0),format!("Leftover review unavailable: {limitation}"));}
-                else {ui.label("Ownership evidence captured. A leftover suggestion still requires successful registration removal and unchanged file hashes.");}
-                ui.label("This runs third-party software which may change files and settings. Save your work first. AppUninstaller cannot undo the publisher's uninstall.");
-                ui.checkbox(&mut confirm.accepted,"I reviewed this action and want to run the registered uninstaller");
-                ui.horizontal(|ui|{cancel=ui.button("Cancel").clicked();launch=ui.add_enabled(confirm.accepted&&!self.busy,egui::Button::new("Run registered uninstaller")).clicked();});
+            egui::Window::new(l.text("Review registered uninstall action")).collapsible(false).resizable(true).default_width(640.).show(ctx,|ui| {
+                ui.heading(&confirm.app.name);ui.label(l.format("Publisher: {0}", &[confirm.app.publisher.clone()]));
+                ui.strong(l.text("Executable"));ui.monospace(confirm.plan.executable.display().to_string());
+                ui.strong(l.text("Arguments"));ui.monospace(&confirm.plan.arguments);ui.label(l.text(&confirm.plan.explanation));
+                if let Some(limitation)=&confirm.limitation {ui.colored_label(ui.visuals().warn_fg_color,l.format("Leftover review unavailable: {0}", &[l.text(limitation).to_owned()]));}
+                else {ui.label(l.text("Ownership evidence captured. A leftover suggestion still requires successful registration removal and unchanged file hashes."));}
+                ui.label(l.text("This runs third-party software which may change files and settings. Save your work first. AppUninstaller cannot undo the publisher's uninstall."));
+                ui.checkbox(&mut confirm.accepted,l.text("I reviewed this action and want to run the registered uninstaller"));
+                ui.horizontal(|ui|{cancel=ui.button(l.text("Cancel")).clicked();launch=ui.add_enabled(confirm.accepted&&!self.busy,egui::Button::new(l.text("Run registered uninstaller"))).clicked();});
             });
         }
         if cancel {
@@ -1089,10 +1166,10 @@ impl Desktop {
         let mut restore = false;
         let mut dismiss = false;
         if let Some(record) = &self.restore_confirm {
-            egui::Window::new("Restore quarantined folder").collapsible(false).show(ctx,|ui| {
-                ui.label(format!("Restore {} to:",record.app_name));ui.monospace(record.original.display().to_string());
-                ui.label("Files must still match the quarantine journal. An existing original location will never be overwritten.");
-                ui.horizontal(|ui|{dismiss=ui.button("Cancel").clicked();restore=ui.add_enabled(!self.busy,egui::Button::new("Restore folder")).clicked();});
+            egui::Window::new(l.text("Restore quarantined folder")).collapsible(false).show(ctx,|ui| {
+                ui.label(l.format("Restore {0} to:", &[record.app_name.clone()]));ui.monospace(record.original.display().to_string());
+                ui.label(l.text("Files must still match the quarantine journal. An existing original location will never be overwritten."));
+                ui.horizontal(|ui|{dismiss=ui.button(l.text("Cancel")).clicked();restore=ui.add_enabled(!self.busy,egui::Button::new(l.text("Restore folder"))).clicked();});
             });
         }
         if dismiss {
@@ -1109,11 +1186,14 @@ impl Desktop {
 impl Desktop {
     pub fn update(&mut self, ctx: &egui::Context) {
         self.receive_background(ctx);
+        self.ensure_theme(ctx);
         self.update_removed_rows(ctx);
+        let palette = crate::design::palette(self.settings.theme);
+        let l = self.settings.language;
         egui::TopBottomPanel::top("header")
             .frame(
                 egui::Frame::new()
-                    .fill(crate::design::SURFACE)
+                    .fill(palette.surface)
                     .inner_margin(egui::Margin::symmetric(24, 12)),
             )
             .show(ctx, |ui| {
@@ -1122,23 +1202,23 @@ impl Desktop {
                         RichText::new("AppUninstaller")
                             .size(24.)
                             .strong()
-                            .color(crate::design::ACCENT),
+                            .color(palette.accent_text),
                     );
                     ui.label(
-                        RichText::new("A careful way to remove apps.").color(crate::design::MUTED),
+                        RichText::new(l.text("A careful way to remove apps.")).color(palette.muted),
                     );
                 });
 
                 ui.horizontal(|ui| {
                     for (page, label) in [
-                        (Page::Applications, "Applications"),
-                        (Page::Leftovers, "Leftover review"),
-                        (Page::Quarantine, "Quarantine"),
-                        (Page::Settings, "Settings"),
+                        (Page::Applications, l.text("Applications")),
+                        (Page::Leftovers, l.text("Leftover review")),
+                        (Page::Quarantine, l.text("Quarantine")),
+                        (Page::Settings, l.text("Settings")),
                     ] {
                         ui.selectable_value(&mut self.page, page, label);
                     }
-                    if self.update.is_some() && ui.button("Update available").clicked() {
+                    if self.update.is_some() && ui.button(l.text("Update available")).clicked() {
                         self.page = Page::Settings;
                     }
                 });
@@ -1146,8 +1226,8 @@ impl Desktop {
         egui::TopBottomPanel::bottom("status").show(ctx, |ui| {
             if let Some(error) = self.error.clone() {
                 ui.horizontal_wrapped(|ui| {
-                    ui.colored_label(Color32::from_rgb(160, 40, 30), error);
-                    if ui.small_button("Dismiss").clicked() {
+                    ui.colored_label(ui.visuals().error_fg_color, l.text(&error));
+                    if ui.small_button(l.text("Dismiss")).clicked() {
                         self.error = None;
                     }
                 });
@@ -1156,12 +1236,14 @@ impl Desktop {
                 if self.busy {
                     ui.spinner();
                 }
-                ui.label(&self.message);
+                ui.label(self.message.render(l));
                 if self.removal_view.as_ref().is_some_and(|view| {
                     view.elevation.is_some()
                         && (self.page != Page::Applications
                             || self.selected.as_ref() != Some(&view.app_id))
-                }) && ui.small_button("Review administrator request").clicked()
+                }) && ui
+                    .small_button(l.text("Review administrator request"))
+                    .clicked()
                 {
                     self.selected = self.removal_view.as_ref().map(|view| view.app_id.clone());
                     self.page = Page::Applications;
@@ -1170,7 +1252,7 @@ impl Desktop {
                     .removal_view
                     .as_ref()
                     .is_some_and(|view| view.status.monitoring)
-                    && ui.small_button("Stop watching").clicked()
+                    && ui.small_button(l.text("Stop watching")).clicked()
                 {
                     self.send(Work::StopWatching, "Stopping removal observation…");
                 }
@@ -1179,7 +1261,7 @@ impl Desktop {
         egui::CentralPanel::default()
             .frame(
                 egui::Frame::new()
-                    .fill(crate::design::BACKGROUND)
+                    .fill(palette.background)
                     .inner_margin(24.),
             )
             .show(ctx, |ui| {
@@ -1194,12 +1276,13 @@ impl Desktop {
                     });
                 }
             });
+        self.ensure_theme(ctx);
         self.confirmations(ctx);
     }
 }
-fn size(bytes: Option<u64>) -> String {
+fn size(bytes: Option<u64>, l: Language) -> String {
     match bytes {
-        None => "Size not supplied".into(),
+        None => l.text("Size not supplied").into(),
         Some(n) if n >= 1024 * 1024 * 1024 => {
             format!("{:.1} GB", n as f64 / (1024. * 1024. * 1024.))
         }
@@ -1211,6 +1294,43 @@ fn size(bytes: Option<u64>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn changing_language_reformats_existing_status_without_changing_app_names() {
+        let ctx = egui::Context::default();
+        let mut app = Desktop::preview(&ctx, "applications-removed").unwrap();
+        let english = app.message.render(Language::English);
+        let russian = app.message.render(Language::Russian);
+        assert_ne!(english, russian);
+        assert!(english.contains("Atlas Notes"));
+        assert!(russian.contains("Atlas Notes"));
+        assert!(russian.contains("удалено"));
+        app.settings.language = Language::French;
+        assert!(
+            app.message
+                .render(app.settings.language)
+                .contains("Atlas Notes")
+        );
+    }
+
+    #[test]
+    fn theme_changes_and_failed_preference_saves_restore_consistent_surfaces() {
+        let ctx = egui::Context::default();
+        let mut app = Desktop::preview(&ctx, "settings").unwrap();
+        let previous = app.settings.clone();
+        app.settings.theme = Theme::Dark;
+        app.ensure_theme(&ctx);
+        assert!(ctx.style().visuals.dark_mode);
+        assert_eq!(
+            ctx.style().visuals.window_fill,
+            crate::design::palette(Theme::Dark).surface
+        );
+        // Capture previews cannot save. Immediate send failures must restore preferences too.
+        app.save_preferences(previous);
+        app.ensure_theme(&ctx);
+        assert_eq!(app.settings.theme, Theme::Light);
+        assert!(!ctx.style().visuals.dark_mode);
+        assert!(app.error.is_some());
+    }
     #[test]
     fn background_progress_and_exit_are_drained_without_building_a_frame() {
         let ctx = egui::Context::default();

@@ -3,6 +3,7 @@ pub mod branding;
 pub mod capture;
 pub mod command;
 pub mod design;
+pub mod i18n;
 pub mod inventory;
 pub mod leftovers;
 pub mod removal;

@@ -1328,5 +1328,19 @@
     "Der Hintergrundprozess ist beschäftigt. Warten Sie auf den aktuellen Vorgang",
     "El proceso está ocupado. Espera a que termine la operación actual",
     "Il processo è occupato. Attendi il completamento dell’operazione attuale"
+  ],
+  "Actions are disabled in an isolated preview.": [
+    "Действия отключены в изолированном просмотре.",
+    "Les actions sont désactivées dans un aperçu isolé.",
+    "Aktionen sind in einer isolierten Vorschau deaktiviert.",
+    "Las acciones están desactivadas en una vista previa aislada.",
+    "Le azioni sono disabilitate in un’anteprima isolata."
+  ],
+  "Nothing was launched: the registered uninstaller file is missing.": [
+    "Ничего не запущено: файл зарегистрированной программы удаления отсутствует.",
+    "Rien n’a été lancé : le programme de désinstallation enregistré est introuvable.",
+    "Es wurde nichts gestartet: Die registrierte Deinstallationsdatei fehlt.",
+    "No se ha iniciado nada: falta el archivo del desinstalador registrado.",
+    "Non è stato avviato nulla: manca il file del programma di disinstallazione registrato."
   ]
 }

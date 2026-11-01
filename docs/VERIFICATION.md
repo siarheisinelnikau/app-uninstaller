@@ -2,6 +2,14 @@
 
 Date: 2026-11-01 (Europe/Minsk). Current verification uses no Computer Use. Real applications were not uninstalled, real leftovers were not quarantined, and no update was downloaded or installed. No remote Git operation or publication occurred. No native UAC request was executed during verification.
 
+## 0.2.0 localization and theme update (2026-11-01)
+
+Added an embedded 192-message English/Russian/French/German/Spanish/Italian catalog, persisted immediate display controls, coherent light/dark visual roles and a native window-theme command. Defaults migrate older settings without changing the startup-check opt-out. Template-based statuses change language without altering application names or paths. Failed saves restore the previous display settings.
+
+Formatting, all-target Clippy with warnings denied, **39 fixture tests** (29 library and 10 integration) and an optimized offline Windows x64 build passed. The packaged `AppUninstaller-v0.2.0.exe` is **8,624,128 bytes**, SHA-256 `28c4f737947b3df883c29f56be3533a46baf4aa50c10372244abd9875e260ff4`. Read-only PE/resource inspection confirms embedded version 0.2.0, GUI/x64 architecture, static-runtime imports and all seven icon size resources with visible alpha bounds; [metadata](evidence/package-0.2.0.json).
+
+This phase did not execute the application, capture new screens, operate a real uninstaller or install an update. Current no-launch repository instructions leave new-binary runtime measurements and translated dark/light layout/interaction checks pending. Existing PNGs and runtime samples below are historical 0.1.2 evidence. See [localization verification](LOCALIZATION.md) and [0.2.0 release notes](releases/v0.2.0.md).
+
 ## Rust workspace audit (2026-11-01)
 
 The reusable update implementation now lives in the sibling `rust-auto-updator` core. This repository retains product configuration, its existing sleeping worker, explicit user download/restart actions and bounded durable helper-error reporting. The adapter accepts GitHub SHA-256 digests when no checksum asset is present, and asks the core to validate the GUI PE subsystem and target architecture. New startup handles the core cleanup protocol only after native host initialization. Tests do not download or install updates.

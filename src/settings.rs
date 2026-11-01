@@ -30,44 +30,6 @@ impl Default for Settings {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn older_settings_keep_update_preference_and_gain_display_defaults() {
-        let settings: Settings = serde_json::from_str(r#"{"check_on_startup":false}"#).unwrap();
-        assert!(!settings.check_on_startup);
-        assert_eq!(settings.language, crate::i18n::Language::English);
-        assert_eq!(settings.theme, Theme::Light);
-    }
-
-    #[test]
-    fn unknown_future_display_choices_fall_back_without_enabling_startup_checks() {
-        let settings: Settings = serde_json::from_str(
-            r#"{"check_on_startup":false,"language":"future_language","theme":"future_theme"}"#,
-        )
-        .unwrap();
-        assert!(!settings.check_on_startup);
-        assert_eq!(settings.language, crate::i18n::Language::English);
-        assert_eq!(settings.theme, Theme::Light);
-    }
-
-    #[test]
-    fn display_choices_survive_atomic_settings_roundtrip() {
-        let directory = tempfile::tempdir().unwrap();
-        let settings = Settings {
-            language: crate::i18n::Language::Russian,
-            theme: Theme::Dark,
-            check_on_startup: false,
-        };
-        save(directory.path(), &settings).unwrap();
-        let restored = load(directory.path()).unwrap();
-        assert_eq!(restored.language, settings.language);
-        assert_eq!(restored.theme, settings.theme);
-        assert!(!restored.check_on_startup);
-    }
-}
 pub fn data_dir() -> Result<PathBuf> {
     let local = std::env::var_os("LOCALAPPDATA")
         .context("LOCALAPPDATA is unavailable; settings cannot be stored")?;
@@ -111,4 +73,43 @@ pub fn save(dir: &Path, settings: &Settings) -> Result<()> {
     #[cfg(not(windows))]
     fs::rename(temp, dir.join("settings.json"))?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn older_settings_keep_update_preference_and_gain_display_defaults() {
+        let settings: Settings = serde_json::from_str(r#"{"check_on_startup":false}"#).unwrap();
+        assert!(!settings.check_on_startup);
+        assert_eq!(settings.language, crate::i18n::Language::English);
+        assert_eq!(settings.theme, Theme::Light);
+    }
+
+    #[test]
+    fn unknown_future_display_choices_fall_back_without_enabling_startup_checks() {
+        let settings: Settings = serde_json::from_str(
+            r#"{"check_on_startup":false,"language":"future_language","theme":"future_theme"}"#,
+        )
+        .unwrap();
+        assert!(!settings.check_on_startup);
+        assert_eq!(settings.language, crate::i18n::Language::English);
+        assert_eq!(settings.theme, Theme::Light);
+    }
+
+    #[test]
+    fn display_choices_survive_atomic_settings_roundtrip() {
+        let directory = tempfile::tempdir().unwrap();
+        let settings = Settings {
+            language: crate::i18n::Language::Russian,
+            theme: Theme::Dark,
+            check_on_startup: false,
+        };
+        save(directory.path(), &settings).unwrap();
+        let restored = load(directory.path()).unwrap();
+        assert_eq!(restored.language, settings.language);
+        assert_eq!(restored.theme, settings.theme);
+        assert!(!restored.check_on_startup);
+    }
 }

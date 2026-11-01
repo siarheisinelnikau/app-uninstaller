@@ -1,4 +1,10 @@
-# AppUninstaller — local release drafts
+# AppUninstaller — release notes
+
+## 0.2.0 — six languages and light/dark themes
+
+Adds persisted, immediate display preferences in Settings. The embedded catalog covers English, Russian, French, German, Spanish and Italian across application/removal/recovery/update workflows. See the [0.2.0 release description](releases/v0.2.0.md) for changes and verification limits. Windows x64 portable package: `AppUninstaller-v0.2.0.exe`.
+
+## Historical local release drafts
 
 These versions are local and unpublished. There is no preceding published release or verified remote comparison baseline.
 

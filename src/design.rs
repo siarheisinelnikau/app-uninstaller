@@ -55,6 +55,13 @@ pub fn apply_theme(ctx: &Context, theme: crate::settings::Theme) {
     visuals.window_fill = colors.surface;
     visuals.extreme_bg_color = colors.background;
     ctx.set_visuals(visuals);
+    ctx.send_viewport_cmd(egui::ViewportCommand::SetTheme(
+        if theme == crate::settings::Theme::Dark {
+            egui::SystemTheme::Dark
+        } else {
+            egui::SystemTheme::Light
+        },
+    ));
 }
 
 pub fn configure(ctx: &Context) {

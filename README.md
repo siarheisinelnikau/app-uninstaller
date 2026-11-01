@@ -2,7 +2,7 @@
 
 A Windows desktop application for reviewing installed programs, running their registered uninstallers, and deciding what to do with proven leftovers. Original implementation and interface; no affiliation with Revo or use of competitor code/assets.
 
-**Status:** local version 0.1.2. Windows x64 is the packaging target. The repository and releases have not been published. CPU/GDI rendering, isolated idle/hidden/restore behavior and static UI screenshots have been checked. Destructive live workflows and final hands-on responsiveness remain pending.
+**Version:** 0.2.0. Windows x64 portable application with six interface languages and saved light/dark themes. Prior 0.1.2 evidence covers CPU/GDI rendering and isolated idle/hidden/restore behavior. The 0.2.0 interface changes have automated source/fixture checks; refreshed screenshots, runtime measurements and hands-on checks remain pending.
 
 ## What works in the code
 
@@ -14,6 +14,14 @@ A Windows desktop application for reviewing installed programs, running their re
 - Reversible quarantine by same-volume folder rename, with a flushed JSON recovery journal written first. Restore refuses to overwrite an existing original folder or restore changed quarantine contents. Quarantine retains the same disk usage; permanent deletion remains manual.
 - Settings with installed version, **Check for updates**, persistent **Check for updates on startup** (enabled by default), release notes, progress and user-initiated **Download and install**. A separate confirmation restarts into the verified update. The verified new EXE acts as a helper after exit, retains `previous.exe` during replacement, and rolls back failed replacement/restart attempts.
 - One bounded background worker for registry, filesystem, process and network work; a virtualized inventory and reactive egui desktop UI. Only an active removal session checks its exact registration once per second; it does not rescan the inventory or reload icons. Unchanged observations do not repaint. Unchanged scenes skip rasterization; native exposure can reuse the retained bitmap. Ordinary settled hidden windows do not build or draw the UI.
+
+## Language and appearance
+
+Open **Settings → Appearance & language**. **Language** offers English, Русский, Français, Deutsch, Español and Italiano. **Theme** has direct **Light** and **Dark** choices. Both apply immediately, persist for the next launch and keep existing update preferences and recovery data. English is the complete default/fallback language. Older settings files receive English and Light defaults; unsupported future display values fall back safely.
+
+Navigation, inventory controls, removal status, safety confirmations, leftover/recovery screens, update controls and local ownership explanations are translated. Application/publisher names, paths, registered commands, license texts, published release notes and technical diagnostic details retain their original content. Choosing a language never rewrites inventory or recovery records.
+
+The catalog is embedded in the EXE; switching language or theme requires no download. Settings writes happen only after a user change. Theme application runs only when the selected theme changes; the CPU renderer retains its reactive scheduling. See [localization and display verification](docs/LOCALIZATION.md) for scope and deferred runtime checks.
 
 ## Build and review
 
@@ -27,7 +35,7 @@ Set-Location E:\work\github\app-uninstaller
 
 The source checkout requires the sibling `../rust-auto-updator/crates/rust-auto-updator` workspace (the reusable update core). Obtain both sources together; the updater is not yet published as a registry package, and standalone CI must provision this sibling before building.
 
-Omit `-Offline` only when dependency downloads are available and desired. Cargo uses two jobs and this repository's `target` folder. Packaging writes `dist/AppUninstaller-v0.1.2.exe`, `SHA256SUMS.txt` and license notices. It never executes the application or publishes anything. Run the EXE manually only when interactive testing is authorized.
+Omit `-Offline` only when dependency downloads are available and desired. Cargo uses two jobs and this repository's `target` folder. Packaging writes `dist/AppUninstaller-v0.2.0.exe`, `SHA256SUMS.txt` and license notices. It never executes the application or publishes anything. Run the EXE manually only when interactive testing is authorized.
 
 The executable contains third-party license/font notices under Settings; `THIRD_PARTY_NOTICES.txt` also accompanies packaged artifacts. Refresh it after dependency changes with `python scripts/notices.py` using the local Cargo cache.
 
@@ -54,15 +62,15 @@ Keep the JSON journal with its quarantine folder. If the journal is lost, the fo
 - Capture is limited to 5,000 tree entries, 512 MiB of file contents and 32 folder levels. New/changed files or folders invalidate a preview. Hidden entries are included. Encrypted/offline files and reparse points are excluded.
 - Quarantine is selected at the proven-folder level; individual files are previewed but cannot be separately removed. Ownership evidence is session-only. Closing the app loses an unfinished removal review; existing quarantine journals remain recoverable.
 - File hashes and repeated checks protect ordinary review mistakes, not hostile concurrent filesystem/registry mutation. Do not run simultaneous cleaners/installers against the same folder. A directory rename is not an OS restore point and cannot undo the publisher's actions.
-- Only Windows x64 portable releases are selected for updates. No release currently exists: an unavailable repository/release is reported as unavailable, never “up to date.” Installation requires a writable EXE folder and a supplied SHA-256 digest or matching `SHA256SUMS.txt`. Checksums use the same GitHub trust channel; Authenticode signing is not configured.
+- Only Windows x64 portable releases are selected for updates. An unavailable repository/release is reported as unavailable, never “up to date.” Installation requires a writable EXE folder and a supplied SHA-256 digest or matching `SHA256SUMS.txt`. Checksums use the same GitHub trust channel; Authenticode signing is not configured.
 - Reusable release validation, HTTPS download, SHA-256/PE checks, atomic replacement, rollback and safe cleanup live in `rust-auto-updator`. Staging uses `.AppUninstaller-update-*` beside the EXE; cleanup starts only after the updated native host initializes. Settings and quarantine data stay outside staging. Reports from older helpers remain readable on migration. A successful launch request does not prove that every new screen is usable.
 - In-place updates preserve the original launch path. If that filename contains an older version, Settings shows the actual installed binary version; newly published download assets still use their correct versioned filenames.
 
 ## Verification and screenshots
 
-See [verification record](docs/VERIFICATION.md), [architecture](docs/ARCHITECTURE.md), [manual validation](docs/MANUAL_TESTS.md) and [initial release notes draft](docs/RELEASE_NOTES.md).
+See [verification record](docs/VERIFICATION.md), [architecture](docs/ARCHITECTURE.md), [manual validation](docs/MANUAL_TESTS.md) and [release notes](docs/RELEASE_NOTES.md).
 
-These are real client-area PNGs saved by the packaged application's production UI components and CPU rasterizer. They use deterministic sample registrations, contain no personal inventory, and do not show native Windows chrome. All actions are disabled in capture mode.
+The images below are historical 0.1.2 evidence and do not show the new 0.2.0 language/theme controls. Refreshed main/settings captures and translated dark-theme layout review are pending because this task preserves the repository’s no-application-launch restriction. These are real client-area PNGs saved by the packaged application's production UI components and CPU rasterizer. They use deterministic sample registrations, contain no personal inventory, and do not show native Windows chrome. All actions are disabled in capture mode.
 
 ![Installed applications and registered uninstall action](docs/screenshots/applications.png)
 

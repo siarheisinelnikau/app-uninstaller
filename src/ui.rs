@@ -1142,7 +1142,7 @@ impl Desktop {
         let mut cancel = false;
         if let Some(confirm) = &mut self.confirmation {
             egui::Window::new(l.text("Review registered uninstall action")).collapsible(false).resizable(true).default_width(640.).show(ctx,|ui| {
-                ui.heading(&confirm.app.name);ui.label(l.format("Publisher: {0}", &[confirm.app.publisher.clone()]));
+                ui.heading(&confirm.app.name);ui.label(l.format("Publisher: {0}", std::slice::from_ref(&confirm.app.publisher)));
                 ui.strong(l.text("Executable"));ui.monospace(confirm.plan.executable.display().to_string());
                 ui.strong(l.text("Arguments"));ui.monospace(&confirm.plan.arguments);ui.label(l.text(&confirm.plan.explanation));
                 if let Some(limitation)=&confirm.limitation {ui.colored_label(ui.visuals().warn_fg_color,l.format("Leftover review unavailable: {0}", &[l.text(limitation).to_owned()]));}
@@ -1167,7 +1167,7 @@ impl Desktop {
         let mut dismiss = false;
         if let Some(record) = &self.restore_confirm {
             egui::Window::new(l.text("Restore quarantined folder")).collapsible(false).show(ctx,|ui| {
-                ui.label(l.format("Restore {0} to:", &[record.app_name.clone()]));ui.monospace(record.original.display().to_string());
+                ui.label(l.format("Restore {0} to:", std::slice::from_ref(&record.app_name)));ui.monospace(record.original.display().to_string());
                 ui.label(l.text("Files must still match the quarantine journal. An existing original location will never be overwritten."));
                 ui.horizontal(|ui|{dismiss=ui.button(l.text("Cancel")).clicked();restore=ui.add_enabled(!self.busy,egui::Button::new(l.text("Restore folder"))).clicked();});
             });

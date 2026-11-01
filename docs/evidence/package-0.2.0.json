@@ -1,0 +1,110 @@
+{
+  "file": "AppUninstaller-v0.2.0.exe",
+  "bytes": 8624128,
+  "sha256": "28c4f737947b3df883c29f56be3533a46baf4aa50c10372244abd9875e260ff4",
+  "architecture": "x86_64",
+  "subsystem": "Windows GUI",
+  "imports": [
+    "advapi32.dll",
+    "api-ms-win-core-synch-l1-2-0.dll",
+    "bcryptprimitives.dll",
+    "crypt32.dll",
+    "dwmapi.dll",
+    "gdi32.dll",
+    "imm32.dll",
+    "kernel32.dll",
+    "KERNEL32.dll",
+    "ntdll.dll",
+    "ole32.dll",
+    "oleaut32.dll",
+    "secur32.dll",
+    "shell32.dll",
+    "shlwapi.dll",
+    "uiautomationcore.dll",
+    "USER32.dll",
+    "user32.dll",
+    "uxtheme.dll",
+    "ws2_32.dll"
+  ],
+  "product_version": "0.2.0",
+  "embedded_icons": [
+    {
+      "size": 16,
+      "visible_pixels": 121,
+      "alpha_bounds": [
+        2,
+        2,
+        13,
+        13
+      ],
+      "transparent_corners": true
+    },
+    {
+      "size": 20,
+      "visible_pixels": 196,
+      "alpha_bounds": [
+        3,
+        3,
+        17,
+        17
+      ],
+      "transparent_corners": true
+    },
+    {
+      "size": 24,
+      "visible_pixels": 256,
+      "alpha_bounds": [
+        4,
+        4,
+        20,
+        20
+      ],
+      "transparent_corners": true
+    },
+    {
+      "size": 32,
+      "visible_pixels": 484,
+      "alpha_bounds": [
+        5,
+        5,
+        27,
+        27
+      ],
+      "transparent_corners": true
+    },
+    {
+      "size": 48,
+      "visible_pixels": 1089,
+      "alpha_bounds": [
+        7,
+        7,
+        40,
+        40
+      ],
+      "transparent_corners": true
+    },
+    {
+      "size": 64,
+      "visible_pixels": 1936,
+      "alpha_bounds": [
+        10,
+        10,
+        54,
+        54
+      ],
+      "transparent_corners": true
+    },
+    {
+      "size": 256,
+      "visible_pixels": 30976,
+      "alpha_bounds": [
+        40,
+        40,
+        216,
+        216
+      ],
+      "transparent_corners": true
+    }
+  ],
+  "verification_scope": "Read-only PE/resource bytes; application was not loaded or executed. Native window/taskbar presentation remains unverified."
+}

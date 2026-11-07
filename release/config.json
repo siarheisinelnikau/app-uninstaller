@@ -1,0 +1,12 @@
+{
+  "repository": "siarheisinelnikau/app-uninstaller",
+  "product": "AppUninstaller",
+  "kind": "desktop",
+  "assets": [
+    {
+      "name": "AppUninstaller-v{version}.exe"
+    }
+  ],
+  "notices": true,
+  "checksum_aliases": []
+}
